@@ -10,6 +10,11 @@ This file is read by Claude Code at the start of every session in this repo. It 
 - Any payout, limit, or deductible calculation is plain C# in `Application`/`Domain`, unit-tested, and never delegated to an LLM. Agents may call it as a tool and must cite its output verbatim.
 - Prompts live under `prompts/` as versioned files, never as string literals in C#.
 
+## Git commit rules
+
+- Never append `Co-Authored-By`, `Signed-off-by`, or any AI attribution trailer to commit messages. Commits in this repo must read as the author's own work — this matters for an assessment submission specifically.
+- Commit messages follow Conventional Commits format with only the subject and explanation body — no trailers beyond what Conventional Commits itself defines (e.g. `BREAKING CHANGE:`).
+
 ## Process rules
 
 - No direct commits to `main`. Every change lands via a PR that references an Issue (`Closes #N`).
