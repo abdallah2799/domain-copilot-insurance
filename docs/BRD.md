@@ -1,0 +1,58 @@
+# Business Requirements Document — Domain Copilot (Insurance Claims Adjudication)
+
+**Status**: living document, updated as each requirement is implemented. See the traceability matrix at the bottom for current state.
+
+## 1. Context
+
+An insurance organization's adjusters spend significant time cross-referencing policy documents, coverage schedules, and exclusion clauses to adjudicate claims, and risk two specific failure modes: applying an outdated policy version, and trusting an LLM's arithmetic for payout/limit/deductible calculations. Domain Copilot ingests the policy and claims corpus, answers coverage questions with verifiable citations, and runs a three-agent adjudication workflow (coverage matching → exclusion analysis → drafting) that always routes through a human adjuster before any decision is finalized.
+
+## 2. Assigned variant
+
+- **Domain**: D2 — Insurance claims adjudication
+- **Twist**: T6 — Document in/out (OCR ingestion with confidence handling; generated DOCX/PDF adjudication memo with citations and tables)
+- **Derivation**: stated directly in the assignment invitation email, not derived from National ID.
+
+## 3. Personas
+
+| Persona | Role | Needs |
+|---|---|---|
+| **Adjuster** | Mandated by the D2 approval gate; the only role that may approve, reject, or edit-and-approve an adjudication decision. | Fast, grounded coverage answers with citations; full visibility into what each agent did and why before signing off; cannot be forced to accept an ungrounded or version-ambiguous recommendation. |
+| *(second FR-8 role — TBD)* | Satisfies the "≥2 roles with genuinely different permissions" floor; scope to be defined when auth is implemented (Day 4). | — |
+
+## 4. Objectives (measurable)
+
+| ID | Objective | Measurable acceptance criterion |
+|---|---|---|
+| OBJ-1 | Every claim answer is grounded or explicitly refused | 0% of golden-set answers make an unsupported claim; refusal rate on out-of-corpus questions matches expected refusals in `docs/EVALUATION.md` |
+| OBJ-2 | No payout/limit/deductible figure is ever LLM-computed | 100% of such figures trace to `PayoutCalculationService` unit-tested output, verifiable by code review and contract tests |
+| OBJ-3 | No decision reaches the adjuster without having passed through all three agents | Enforced by orchestration state machine; verified by run-trace inspection (any run ID) |
+
+## 5. Requirements (BR-xx) — grows per epic
+
+Numbering matches the epics in the engineering plan; acceptance criteria are filled in as each is implemented, and the traceability matrix (§8) tracks status.
+
+| ID | Requirement | Acceptance criteria (summary) |
+|---|---|---|
+| BR-01 | Public repo with governance (branch protection, PR/issue templates, CODEOWNERS, CI) exists before feature work begins | Repo created, protected `main`, templates present |
+| BR-02 | Clean Architecture solution skeleton with enforced inward dependency direction | `Domain`/`Application` reference no LLM/vector/web-framework SDK; verified by project reference graph |
+| *(BR-03+)* | Ingestion, retrieval, evaluation, multi-agent workflow, realtime/UI, auth, observability, security, T6 document in/out | To be added as each is built — see epics in the engineering plan |
+
+## 6. Out of scope (explicit)
+
+- Real personal data of any kind (hard non-negotiable per assessment brief) — corpus is synthetic/public only.
+- A third or later insurance product line beyond a single representative policy family used to build the corpus.
+- Anything beyond T6's core (OCR confidence handling + one generated document type) — broader document-type support is deferred, see `docs/SYSTEM-DESIGN.md` gap table.
+
+## 7. Assumptions & risks
+
+- **Assumption**: "invitation email" variant statement (D2T6) is authoritative and does not need National-ID derivation math shown.
+- **Risk (named by the brief)**: wrong-policy-version retrieval — mitigated by mandatory version/date metadata filtering (see ADR on chunking/retrieval, once written).
+- **Risk (named by the brief)**: arithmetic hallucination — mitigated structurally by `PayoutCalculationService` (see `docs/adr/`).
+- **Risk (schedule)**: only 6 calendar days remain versus the brief's 12-day assumption; MoSCoW floors (3 agents+orchestrator, 30-doc corpus, one retrieval enhancement, T6 core only) are treated as the actual target. Any further cut will be logged in the `SYSTEM-DESIGN.md` gap table, not silently dropped.
+
+## 8. Traceability matrix
+
+| BR-xx | Implemented? | Evidence |
+|---|---|---|
+| BR-01 | Partial | This commit: `.github/`, `LICENSE`, `CONTRIBUTING.md`, `.env.example` — branch protection/CI still pending |
+| BR-02 | Partial | `DomainCopilot.sln`, `src/*` project reference graph (Domain has no external deps; Application depends only on Domain) |

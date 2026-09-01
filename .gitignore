@@ -1,0 +1,50 @@
+# ---- .NET ----
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.dll
+*.pdb
+artifacts/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# ---- Node / Angular ----
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tsbuildinfo
+
+# ---- IDE ----
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.DS_Store
+
+# ---- Secrets / env ----
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+*.pfx
+*.key
+secrets.json
+
+# ---- Data / local infra ----
+*.sqlite
+*.db
+docker-volumes/
+qdrant-storage/
+mssql-data/
+ollama-data/
+
+# ---- Docs build artifacts ----
+teaching/**/*.pptx
+!teaching/**/*.md
