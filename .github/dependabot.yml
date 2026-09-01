@@ -5,6 +5,12 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    ignore:
+      # Pinned to override a transitively-vulnerable version (see ADR-0001);
+      # ASP.NET Core's own OpenApi package is still on the 2.x line, so a 3.x
+      # jump here risks a mismatch. Revisit once ASP.NET Core moves to 3.x.
+      - dependency-name: "Microsoft.OpenApi"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "npm"
     directory: "/ui/angular-app"
     schedule:
