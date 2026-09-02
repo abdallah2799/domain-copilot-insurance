@@ -35,7 +35,8 @@ Numbering matches the epics in the engineering plan; acceptance criteria are fil
 |---|---|---|
 | BR-01 | Public repo with governance (branch protection, PR/issue templates, CODEOWNERS, CI) exists before feature work begins | Repo created, protected `main`, templates present |
 | BR-02 | Clean Architecture solution skeleton with enforced inward dependency direction | `Domain`/`Application` reference no LLM/vector/web-framework SDK; verified by project reference graph |
-| *(BR-03+)* | Ingestion, retrieval, evaluation, multi-agent workflow, realtime/UI, auth, observability, security, T6 document in/out | To be added as each is built — see epics in the engineering plan |
+| BR-03 | Provider abstraction: `ICompletionService`/`IEmbeddingService` ports with OpenAI + Ollama implementations and a documented fallback chain | Swapping provider is config + one adapter (ADR-0003); fallback chain unit-tested with fakes, no network dependency |
+| *(BR-04+)* | Ingestion, retrieval, evaluation, multi-agent workflow, realtime/UI, auth, observability, security, T6 document in/out | To be added as each is built — see epics in the engineering plan |
 
 ## 6. Out of scope (explicit)
 
@@ -54,5 +55,6 @@ Numbering matches the epics in the engineering plan; acceptance criteria are fil
 
 | BR-xx | Implemented? | Evidence |
 |---|---|---|
-| BR-01 | Partial | This commit: `.github/`, `LICENSE`, `CONTRIBUTING.md`, `.env.example` — branch protection/CI still pending |
-| BR-02 | Partial | `DomainCopilot.sln`, `src/*` project reference graph (Domain has no external deps; Application depends only on Domain) |
+| BR-01 | Implemented | `.github/`, `LICENSE`, `CONTRIBUTING.md`, `.env.example`, branch protection on `main`, CI green |
+| BR-02 | Implemented | `DomainCopilot.sln`, `src/*` project reference graph (Domain has no external deps; Application depends only on Domain) |
+| BR-03 | Implemented | `src/DomainCopilot.Application/Providers/`, `src/DomainCopilot.Infrastructure/Providers/`, `docs/adr/0003-provider-abstraction-fallback-chain.md`, `tests/DomainCopilot.Application.Tests/Providers/FallbackCompletionServiceTests.cs`, `tests/DomainCopilot.Contract.Tests/KernelToolMapperTests.cs` |
