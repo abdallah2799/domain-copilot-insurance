@@ -1,0 +1,965 @@
+[
+  {
+    "id": "policy_wording_v1",
+    "filename": "policy-forms/policy_wording_v1.pdf",
+    "category": "policy-forms",
+    "format": "pdf",
+    "title": "Meridian Mutual Personal Auto Policy Wording \u2014 PAP-2024-STD",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "policy_wording_v2",
+    "filename": "policy-forms/policy_wording_v2.pdf",
+    "category": "policy-forms",
+    "format": "pdf",
+    "title": "Meridian Mutual Personal Auto Policy Wording \u2014 PAP-2025-STD",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "exclusions_v1",
+    "filename": "policy-forms/exclusions_v1.pdf",
+    "category": "policy-forms",
+    "format": "pdf",
+    "title": "Standard Exclusions Addendum \u2014 PAP-EXCL-2024",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "exclusions_v2",
+    "filename": "policy-forms/exclusions_v2.pdf",
+    "category": "policy-forms",
+    "format": "pdf",
+    "title": "Standard Exclusions Addendum \u2014 PAP-EXCL-2025",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "adjudication_guidelines",
+    "filename": "reference/adjudication_guidelines.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Claims Adjudication Guidelines"
+  },
+  {
+    "id": "regulatory_reference",
+    "filename": "reference/regulatory_reference.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Ohio Regulatory Reference"
+  },
+  {
+    "id": "glossary",
+    "filename": "reference/glossary.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Glossary of Insurance Terms"
+  },
+  {
+    "id": "claims_faq",
+    "filename": "reference/claims_faq.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Internal Memo: Frequently Asked Adjudication Questions"
+  },
+  {
+    "id": "underwriting_guidelines",
+    "filename": "reference/underwriting_guidelines.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Personal Auto Underwriting Guidelines"
+  },
+  {
+    "id": "siu_fraud_indicators",
+    "filename": "reference/siu_fraud_indicators.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Special Investigations Unit \u2014 Fraud Indicators Guide"
+  },
+  {
+    "id": "total_loss_methodology",
+    "filename": "reference/total_loss_methodology.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Total Loss Valuation Methodology"
+  },
+  {
+    "id": "complaint_handling",
+    "filename": "reference/complaint_handling.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Complaint Handling Procedure"
+  },
+  {
+    "id": "producer_manual_excerpt",
+    "filename": "reference/producer_manual_excerpt.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Producer Manual Excerpt \u2014 Binding Authority"
+  },
+  {
+    "id": "ohio_total_loss_title",
+    "filename": "reference/ohio_total_loss_title.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Ohio Total Loss and Salvage Title Requirements"
+  },
+  {
+    "id": "training_scenarios",
+    "filename": "reference/training_scenarios.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Claims Adjudication Training Scenarios"
+  },
+  {
+    "id": "version_comparison",
+    "filename": "reference/version_comparison.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Policy Form Version Comparison \u2014 PAP-2024-STD vs. PAP-2025-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_100234",
+    "filename": "declarations/declarations_mmic_pap_100234.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-100234",
+    "policyNumber": "MMIC-PAP-100234",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_100567",
+    "filename": "declarations/declarations_mmic_pap_100567.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-100567",
+    "policyNumber": "MMIC-PAP-100567",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_101089",
+    "filename": "declarations/declarations_mmic_pap_101089.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-101089",
+    "policyNumber": "MMIC-PAP-101089",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_101456",
+    "filename": "declarations/declarations_mmic_pap_101456.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-101456",
+    "policyNumber": "MMIC-PAP-101456",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_101902",
+    "filename": "declarations/declarations_mmic_pap_101902.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-101902",
+    "policyNumber": "MMIC-PAP-101902",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102118",
+    "filename": "declarations/declarations_mmic_pap_102118.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102118",
+    "policyNumber": "MMIC-PAP-102118",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102203",
+    "filename": "declarations/declarations_mmic_pap_102203.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102203",
+    "policyNumber": "MMIC-PAP-102203",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102277",
+    "filename": "declarations/declarations_mmic_pap_102277.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102277",
+    "policyNumber": "MMIC-PAP-102277",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102340",
+    "filename": "declarations/declarations_mmic_pap_102340.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102340",
+    "policyNumber": "MMIC-PAP-102340",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102415",
+    "filename": "declarations/declarations_mmic_pap_102415.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102415",
+    "policyNumber": "MMIC-PAP-102415",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102489",
+    "filename": "declarations/declarations_mmic_pap_102489.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102489",
+    "policyNumber": "MMIC-PAP-102489",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102561",
+    "filename": "declarations/declarations_mmic_pap_102561.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102561",
+    "policyNumber": "MMIC-PAP-102561",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102634",
+    "filename": "declarations/declarations_mmic_pap_102634.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102634",
+    "policyNumber": "MMIC-PAP-102634",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102705",
+    "filename": "declarations/declarations_mmic_pap_102705.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102705",
+    "policyNumber": "MMIC-PAP-102705",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102778",
+    "filename": "declarations/declarations_mmic_pap_102778.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102778",
+    "policyNumber": "MMIC-PAP-102778",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102841",
+    "filename": "declarations/declarations_mmic_pap_102841.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102841",
+    "policyNumber": "MMIC-PAP-102841",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102913",
+    "filename": "declarations/declarations_mmic_pap_102913.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102913",
+    "policyNumber": "MMIC-PAP-102913",
+    "formVersion": "PAP-2024-STD"
+  },
+  {
+    "id": "declarations_mmic_pap_102986",
+    "filename": "declarations/declarations_mmic_pap_102986.docx",
+    "category": "declarations",
+    "format": "docx",
+    "title": "Declarations Page \u2014 MMIC-PAP-102986",
+    "policyNumber": "MMIC-PAP-102986",
+    "formVersion": "PAP-2025-STD"
+  },
+  {
+    "id": "endorsement_end_ra_01",
+    "filename": "endorsements/endorsement_end_ra_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "Roadside Assistance Endorsement (END-RA-01)",
+    "formCode": "END-RA-01"
+  },
+  {
+    "id": "endorsement_end_rs_01",
+    "filename": "endorsements/endorsement_end_rs_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "Ride-share/TNC Endorsement (END-RS-01)",
+    "formCode": "END-RS-01"
+  },
+  {
+    "id": "endorsement_end_ce_01",
+    "filename": "endorsements/endorsement_end_ce_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "Custom Equipment Endorsement (END-CE-01)",
+    "formCode": "END-CE-01"
+  },
+  {
+    "id": "endorsement_end_nn_01",
+    "filename": "endorsements/endorsement_end_nn_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "Named Non-Owner Household Driver Endorsement (END-NN-01)",
+    "formCode": "END-NN-01"
+  },
+  {
+    "id": "endorsement_end_ai_01",
+    "filename": "endorsements/endorsement_end_ai_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "Additional Insured Endorsement (END-AI-01)",
+    "formCode": "END-AI-01"
+  },
+  {
+    "id": "endorsement_end_gap_01",
+    "filename": "endorsements/endorsement_end_gap_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "Loan/Lease Gap Coverage Endorsement (END-GAP-01)",
+    "formCode": "END-GAP-01"
+  },
+  {
+    "id": "endorsement_end_rr_01",
+    "filename": "endorsements/endorsement_end_rr_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "Rental Reimbursement Increase Endorsement (END-RR-01)",
+    "formCode": "END-RR-01"
+  },
+  {
+    "id": "endorsement_end_oh_01",
+    "filename": "endorsements/endorsement_end_oh_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "Ohio State Amendatory Endorsement (END-OH-01)",
+    "formCode": "END-OH-01"
+  },
+  {
+    "id": "estimate_clm_2025_04417",
+    "filename": "claims/estimate_clm_2025_04417.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04417",
+    "claimNumber": "CLM-2025-04417",
+    "policyNumber": "MMIC-PAP-100234"
+  },
+  {
+    "id": "estimate_clm_2025_04492",
+    "filename": "claims/estimate_clm_2025_04492.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04492",
+    "claimNumber": "CLM-2025-04492",
+    "policyNumber": "MMIC-PAP-100567"
+  },
+  {
+    "id": "estimate_clm_2025_04511",
+    "filename": "claims/estimate_clm_2025_04511.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04511",
+    "claimNumber": "CLM-2025-04511",
+    "policyNumber": "MMIC-PAP-101089"
+  },
+  {
+    "id": "estimate_clm_2025_04578",
+    "filename": "claims/estimate_clm_2025_04578.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04578",
+    "claimNumber": "CLM-2025-04578",
+    "policyNumber": "MMIC-PAP-101456"
+  },
+  {
+    "id": "estimate_clm_2025_04602",
+    "filename": "claims/estimate_clm_2025_04602.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04602",
+    "claimNumber": "CLM-2025-04602",
+    "policyNumber": "MMIC-PAP-101902"
+  },
+  {
+    "id": "estimate_clm_2025_04651",
+    "filename": "claims/estimate_clm_2025_04651.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04651",
+    "claimNumber": "CLM-2025-04651",
+    "policyNumber": "MMIC-PAP-102118"
+  },
+  {
+    "id": "estimate_clm_2025_04688",
+    "filename": "claims/estimate_clm_2025_04688.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04688",
+    "claimNumber": "CLM-2025-04688",
+    "policyNumber": "MMIC-PAP-102203"
+  },
+  {
+    "id": "estimate_clm_2025_04703",
+    "filename": "claims/estimate_clm_2025_04703.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04703",
+    "claimNumber": "CLM-2025-04703",
+    "policyNumber": "MMIC-PAP-102277"
+  },
+  {
+    "id": "estimate_clm_2025_04719",
+    "filename": "claims/estimate_clm_2025_04719.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04719",
+    "claimNumber": "CLM-2025-04719",
+    "policyNumber": "MMIC-PAP-102340"
+  },
+  {
+    "id": "estimate_clm_2025_04742",
+    "filename": "claims/estimate_clm_2025_04742.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04742",
+    "claimNumber": "CLM-2025-04742",
+    "policyNumber": "MMIC-PAP-102415"
+  },
+  {
+    "id": "estimate_clm_2025_04760",
+    "filename": "claims/estimate_clm_2025_04760.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04760",
+    "claimNumber": "CLM-2025-04760",
+    "policyNumber": "MMIC-PAP-102489"
+  },
+  {
+    "id": "estimate_clm_2025_04781",
+    "filename": "claims/estimate_clm_2025_04781.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04781",
+    "claimNumber": "CLM-2025-04781",
+    "policyNumber": "MMIC-PAP-102561"
+  },
+  {
+    "id": "estimate_clm_2025_04802",
+    "filename": "claims/estimate_clm_2025_04802.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04802",
+    "claimNumber": "CLM-2025-04802",
+    "policyNumber": "MMIC-PAP-102634"
+  },
+  {
+    "id": "estimate_clm_2025_04819",
+    "filename": "claims/estimate_clm_2025_04819.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04819",
+    "claimNumber": "CLM-2025-04819",
+    "policyNumber": "MMIC-PAP-102705"
+  },
+  {
+    "id": "estimate_clm_2025_04835",
+    "filename": "claims/estimate_clm_2025_04835.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04835",
+    "claimNumber": "CLM-2025-04835",
+    "policyNumber": "MMIC-PAP-102778"
+  },
+  {
+    "id": "estimate_clm_2025_04851",
+    "filename": "claims/estimate_clm_2025_04851.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04851",
+    "claimNumber": "CLM-2025-04851",
+    "policyNumber": "MMIC-PAP-102841"
+  },
+  {
+    "id": "estimate_clm_2025_04867",
+    "filename": "claims/estimate_clm_2025_04867.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04867",
+    "claimNumber": "CLM-2025-04867",
+    "policyNumber": "MMIC-PAP-102913"
+  },
+  {
+    "id": "estimate_clm_2025_04882",
+    "filename": "claims/estimate_clm_2025_04882.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Repair Estimate \u2014 CLM-2025-04882",
+    "claimNumber": "CLM-2025-04882",
+    "policyNumber": "MMIC-PAP-102986"
+  },
+  {
+    "id": "casenotes_clm_2025_04417",
+    "filename": "claims/casenotes_clm_2025_04417.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04417",
+    "claimNumber": "CLM-2025-04417",
+    "policyNumber": "MMIC-PAP-100234"
+  },
+  {
+    "id": "casenotes_clm_2025_04492",
+    "filename": "claims/casenotes_clm_2025_04492.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04492",
+    "claimNumber": "CLM-2025-04492",
+    "policyNumber": "MMIC-PAP-100567"
+  },
+  {
+    "id": "casenotes_clm_2025_04511",
+    "filename": "claims/casenotes_clm_2025_04511.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04511",
+    "claimNumber": "CLM-2025-04511",
+    "policyNumber": "MMIC-PAP-101089"
+  },
+  {
+    "id": "casenotes_clm_2025_04578",
+    "filename": "claims/casenotes_clm_2025_04578.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04578",
+    "claimNumber": "CLM-2025-04578",
+    "policyNumber": "MMIC-PAP-101456"
+  },
+  {
+    "id": "casenotes_clm_2025_04602",
+    "filename": "claims/casenotes_clm_2025_04602.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04602",
+    "claimNumber": "CLM-2025-04602",
+    "policyNumber": "MMIC-PAP-101902"
+  },
+  {
+    "id": "casenotes_clm_2025_04651",
+    "filename": "claims/casenotes_clm_2025_04651.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04651",
+    "claimNumber": "CLM-2025-04651",
+    "policyNumber": "MMIC-PAP-102118"
+  },
+  {
+    "id": "casenotes_clm_2025_04688",
+    "filename": "claims/casenotes_clm_2025_04688.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04688",
+    "claimNumber": "CLM-2025-04688",
+    "policyNumber": "MMIC-PAP-102203"
+  },
+  {
+    "id": "casenotes_clm_2025_04703",
+    "filename": "claims/casenotes_clm_2025_04703.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04703",
+    "claimNumber": "CLM-2025-04703",
+    "policyNumber": "MMIC-PAP-102277"
+  },
+  {
+    "id": "casenotes_clm_2025_04719",
+    "filename": "claims/casenotes_clm_2025_04719.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04719",
+    "claimNumber": "CLM-2025-04719",
+    "policyNumber": "MMIC-PAP-102340"
+  },
+  {
+    "id": "casenotes_clm_2025_04742",
+    "filename": "claims/casenotes_clm_2025_04742.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04742",
+    "claimNumber": "CLM-2025-04742",
+    "policyNumber": "MMIC-PAP-102415"
+  },
+  {
+    "id": "casenotes_clm_2025_04760",
+    "filename": "claims/casenotes_clm_2025_04760.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04760",
+    "claimNumber": "CLM-2025-04760",
+    "policyNumber": "MMIC-PAP-102489"
+  },
+  {
+    "id": "casenotes_clm_2025_04781",
+    "filename": "claims/casenotes_clm_2025_04781.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04781",
+    "claimNumber": "CLM-2025-04781",
+    "policyNumber": "MMIC-PAP-102561"
+  },
+  {
+    "id": "casenotes_clm_2025_04802",
+    "filename": "claims/casenotes_clm_2025_04802.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04802",
+    "claimNumber": "CLM-2025-04802",
+    "policyNumber": "MMIC-PAP-102634"
+  },
+  {
+    "id": "casenotes_clm_2025_04819",
+    "filename": "claims/casenotes_clm_2025_04819.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04819",
+    "claimNumber": "CLM-2025-04819",
+    "policyNumber": "MMIC-PAP-102705"
+  },
+  {
+    "id": "casenotes_clm_2025_04835",
+    "filename": "claims/casenotes_clm_2025_04835.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04835",
+    "claimNumber": "CLM-2025-04835",
+    "policyNumber": "MMIC-PAP-102778"
+  },
+  {
+    "id": "casenotes_clm_2025_04851",
+    "filename": "claims/casenotes_clm_2025_04851.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04851",
+    "claimNumber": "CLM-2025-04851",
+    "policyNumber": "MMIC-PAP-102841"
+  },
+  {
+    "id": "casenotes_clm_2025_04867",
+    "filename": "claims/casenotes_clm_2025_04867.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04867",
+    "claimNumber": "CLM-2025-04867",
+    "policyNumber": "MMIC-PAP-102913"
+  },
+  {
+    "id": "casenotes_clm_2025_04882",
+    "filename": "claims/casenotes_clm_2025_04882.docx",
+    "category": "claims",
+    "format": "docx",
+    "title": "Adjuster Case Notes \u2014 CLM-2025-04882",
+    "claimNumber": "CLM-2025-04882",
+    "policyNumber": "MMIC-PAP-102986"
+  },
+  {
+    "id": "intake_clm_2025_04417",
+    "filename": "claims/intake_clm_2025_04417.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04417",
+    "claimNumber": "CLM-2025-04417",
+    "policyNumber": "MMIC-PAP-100234",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04492",
+    "filename": "claims/intake_clm_2025_04492.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04492",
+    "claimNumber": "CLM-2025-04492",
+    "policyNumber": "MMIC-PAP-100567",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04511",
+    "filename": "claims/intake_clm_2025_04511.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04511",
+    "claimNumber": "CLM-2025-04511",
+    "policyNumber": "MMIC-PAP-101089",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04578",
+    "filename": "claims/intake_clm_2025_04578.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04578",
+    "claimNumber": "CLM-2025-04578",
+    "policyNumber": "MMIC-PAP-101456",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04602",
+    "filename": "claims/intake_clm_2025_04602.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04602",
+    "claimNumber": "CLM-2025-04602",
+    "policyNumber": "MMIC-PAP-101902",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04651",
+    "filename": "claims/intake_clm_2025_04651.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04651",
+    "claimNumber": "CLM-2025-04651",
+    "policyNumber": "MMIC-PAP-102118",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04688",
+    "filename": "claims/intake_clm_2025_04688.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04688",
+    "claimNumber": "CLM-2025-04688",
+    "policyNumber": "MMIC-PAP-102203",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04703",
+    "filename": "claims/intake_clm_2025_04703.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04703",
+    "claimNumber": "CLM-2025-04703",
+    "policyNumber": "MMIC-PAP-102277",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04719",
+    "filename": "claims/intake_clm_2025_04719.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04719",
+    "claimNumber": "CLM-2025-04719",
+    "policyNumber": "MMIC-PAP-102340",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04742",
+    "filename": "claims/intake_clm_2025_04742.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04742",
+    "claimNumber": "CLM-2025-04742",
+    "policyNumber": "MMIC-PAP-102415",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04760",
+    "filename": "claims/intake_clm_2025_04760.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04760",
+    "claimNumber": "CLM-2025-04760",
+    "policyNumber": "MMIC-PAP-102489",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04781",
+    "filename": "claims/intake_clm_2025_04781.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04781",
+    "claimNumber": "CLM-2025-04781",
+    "policyNumber": "MMIC-PAP-102561",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04802",
+    "filename": "claims/intake_clm_2025_04802.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04802",
+    "claimNumber": "CLM-2025-04802",
+    "policyNumber": "MMIC-PAP-102634",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04819",
+    "filename": "claims/intake_clm_2025_04819.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04819",
+    "claimNumber": "CLM-2025-04819",
+    "policyNumber": "MMIC-PAP-102705",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04835",
+    "filename": "claims/intake_clm_2025_04835.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04835",
+    "claimNumber": "CLM-2025-04835",
+    "policyNumber": "MMIC-PAP-102778",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04851",
+    "filename": "claims/intake_clm_2025_04851.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04851",
+    "claimNumber": "CLM-2025-04851",
+    "policyNumber": "MMIC-PAP-102841",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04867",
+    "filename": "claims/intake_clm_2025_04867.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04867",
+    "claimNumber": "CLM-2025-04867",
+    "policyNumber": "MMIC-PAP-102913",
+    "requiresOcr": true
+  },
+  {
+    "id": "intake_clm_2025_04882",
+    "filename": "claims/intake_clm_2025_04882.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Claim Intake Form (scanned) \u2014 CLM-2025-04882",
+    "claimNumber": "CLM-2025-04882",
+    "policyNumber": "MMIC-PAP-102986",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_dpd_2025_118834",
+    "filename": "claims/incident_dpd_2025_118834.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 DPD-2025-118834",
+    "claimNumber": "CLM-2025-04417",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_cpd_2025_227719",
+    "filename": "claims/incident_cpd_2025_227719.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 CPD-2025-227719",
+    "claimNumber": "CLM-2025-04492",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_cpd_2025_231044",
+    "filename": "claims/incident_cpd_2025_231044.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 CPD-2025-231044",
+    "claimNumber": "CLM-2025-04578",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_apd_2025_093321",
+    "filename": "claims/incident_apd_2025_093321.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 APD-2025-093321",
+    "claimNumber": "CLM-2025-04602",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_cpd_2025_244981",
+    "filename": "claims/incident_cpd_2025_244981.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 CPD-2025-244981",
+    "claimNumber": "CLM-2025-04651",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_ypd_2024_088213",
+    "filename": "claims/incident_ypd_2024_088213.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 YPD-2024-088213",
+    "claimNumber": "CLM-2025-04688",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_cpd_2025_251102",
+    "filename": "claims/incident_cpd_2025_251102.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 CPD-2025-251102",
+    "claimNumber": "CLM-2025-04703",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_lpd_2025_070456",
+    "filename": "claims/incident_lpd_2025_070456.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 LPD-2025-070456",
+    "claimNumber": "CLM-2025-04760",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_mpd_2025_041987",
+    "filename": "claims/incident_mpd_2025_041987.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 MPD-2025-041987",
+    "claimNumber": "CLM-2025-04781",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_mrpd_2025_018820",
+    "filename": "claims/incident_mrpd_2025_018820.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 MRPD-2025-018820",
+    "claimNumber": "CLM-2025-04802",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_npd_2025_102337",
+    "filename": "claims/incident_npd_2025_102337.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 NPD-2025-102337",
+    "claimNumber": "CLM-2025-04819",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_lpd_2025_033410",
+    "filename": "claims/incident_lpd_2025_033410.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 LPD-2025-033410",
+    "claimNumber": "CLM-2025-04851",
+    "requiresOcr": true
+  },
+  {
+    "id": "incident_cpd_2025_061128",
+    "filename": "claims/incident_cpd_2025_061128.pdf",
+    "category": "claims",
+    "format": "pdf-scanned",
+    "title": "Incident Report Summary (scanned) \u2014 CPD-2025-061128",
+    "claimNumber": "CLM-2025-04867",
+    "requiresOcr": true
+  }
+]
