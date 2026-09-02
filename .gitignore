@@ -48,3 +48,8 @@ ollama-data/
 # ---- Docs build artifacts ----
 teaching/**/*.pptx
 !teaching/**/*.md
+
+# ---- Corpus generation tooling (committed: generate/*.py, corpus/ output; not: venv/scratch) ----
+seed-data/generate/.venv/
+seed-data/generate/out/
+seed-data/generate/__pycache__/
