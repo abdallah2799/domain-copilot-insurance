@@ -1,6 +1,6 @@
-# ADR-0003: Provider abstraction — Semantic Kernel behind a fixed OpenAI→Ollama fallback chain
+# ADR-0003: Provider abstraction — Semantic Kernel behind a fixed hosted→local fallback chain
 
-**Status**: Accepted
+**Status**: Accepted (superseded in part — see Update below)
 **Date**: 2026-09-02
 
 ## Context
@@ -27,3 +27,14 @@ Tool declarations are deliberately never auto-invoked by Semantic Kernel (`Funct
 Easier: adding a third provider (e.g. Azure OpenAI) is one new `Infrastructure` class plus a `DependencyInjection.cs` change; the fallback chain and everything upstream (agents, retrieval) never notices. The fallback decorator's mid-stream-failure handling is covered by unit tests with zero network dependency (`FallbackCompletionServiceTests`), including the specific case of a provider failing after it has already streamed partial content — falling back there would silently duplicate output on the client, so that case propagates the failure instead of retrying.
 
 Harder: token/cost usage extraction (`SemanticKernelCompletionAdapter.ExtractUsage`) reads the OpenAI SDK's usage object by reflection on property names rather than a typed reference, because the exact type differs by SDK version and isn't part of Semantic Kernel's own public contract — this is a known soft spot to revisit once Epic H (observability) needs precise, non-defensive cost accounting. The embedding services also pin to Semantic Kernel's now-obsolete `ITextEmbeddingGenerationService` rather than the newer `Microsoft.Extensions.AI.IEmbeddingGenerator`, because the migration path wasn't cleanly resolvable in this SK version without more time than this pass had — tracked as a fast-follow, not silently left unmentioned.
+
+## Update — 2026-09-02: OpenRouter replaces direct OpenAI as the primary completion provider
+
+**Context for the change**: OpenAI's API no longer has a perpetual free tier (confirmed directly against current OpenAI pricing at the time of writing), which conflicts with the brief's "no paid subscription required" design goal and this project's remaining budget. OpenRouter exposes an OpenAI-compatible endpoint over many underlying models, including models still genuinely free to call (verified live against OpenRouter's `/api/v1/models` endpoint, not assumed from training data, since the free-model catalog changes over time) — `nvidia/nemotron-3.5-lightning:free` was selected as the default: 1M token context, explicit `tools`/`tool_choice` support (verified via the same models endpoint), and described by OpenRouter for "high-throughput agentic workloads," which matches this project's multi-agent use case.
+
+**Decision**: add `OpenRouterCompletionService`, built on the exact same pattern as `OllamaCompletionService` (Semantic Kernel's OpenAI connector against a different endpoint/key — this is precisely the "swap provider = config + one adapter" acceptance test the original ADR designed for, now exercised for real). Rebalance the two fallback chains:
+
+- **Completions**: OpenRouter (hosted, primary) → Ollama (local, fallback). OpenRouter's free tier is rate-limited (20 requests/minute, 50/day without any credit purchase, rising to 1,000/day with $10+ lifetime credits, per OpenRouter's published limits) — this makes the Ollama fallback leg materially more important than it was when OpenAI was primary, not just a formality for the acceptance test.
+- **Embeddings**: Ollama (local, primary) → OpenAI (hosted, fallback). OpenRouter has no embeddings endpoint (confirmed against its docs), so it isn't part of this chain. Ollama is primary here — not just the fallback, as for completions — because embeddings are cheap to run entirely locally and there's no free-tier request budget to conserve by preferring a hosted call for them. `OpenAiCompletionService` (the direct-OpenAI completion adapter) remains in the codebase but is no longer wired into the default `ICompletionService` chain; it's still available as a documented drop-in if OpenRouter access becomes unavailable.
+
+**Consequences**: the free-tier rate limit means development and the evaluation harness should run primarily against the Ollama leg locally, reserving OpenRouter calls for final verification and demo recording rather than iterative testing — this is an operational note for `docs/EVALUATION.md` and the README's setup instructions once written, not a code change. Nothing about the port interfaces, the fallback decorator, or the tool-declaration approach changed; only which concrete provider occupies which position in each chain.
