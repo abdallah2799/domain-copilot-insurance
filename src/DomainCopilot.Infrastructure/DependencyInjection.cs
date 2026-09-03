@@ -1,7 +1,12 @@
+using DomainCopilot.Application.Documents;
 using DomainCopilot.Application.Providers;
+using DomainCopilot.Infrastructure.Persistence;
 using DomainCopilot.Infrastructure.Providers;
+using DomainCopilot.Infrastructure.VectorStore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Qdrant.Client;
 
 namespace DomainCopilot.Infrastructure;
 
@@ -10,6 +15,25 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddDomainCopilotInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddDbContext<DomainCopilotDbContext>(options =>
+            options.UseSqlServer(configuration.GetConnectionString("Default")));
+        services.AddScoped<IDocumentRepository, DocumentRepository>();
+
+        var qdrantOptions = configuration.GetSection(QdrantOptions.SectionName).Get<QdrantOptions>() ?? new QdrantOptions();
+        services.AddSingleton(qdrantOptions);
+        services.AddSingleton(sp =>
+        {
+            var opts = sp.GetRequiredService<QdrantOptions>();
+            return new QdrantClient(opts.Host, opts.GrpcPort, opts.Https, opts.ApiKey);
+        });
+
+        // Readiness (not liveness — see Program.cs) checks for both stateful dependencies, so
+        // /health/ready actually proves the app can reach its data stores, not just that the
+        // process started.
+        services.AddHealthChecks()
+            .AddDbContextCheck<DomainCopilotDbContext>("mssql", tags: ["ready"])
+            .AddCheck<QdrantHealthCheck>("qdrant", tags: ["ready"]);
+
         var openAiOptions = configuration.GetSection(OpenAiOptions.SectionName).Get<OpenAiOptions>() ?? new OpenAiOptions();
         var ollamaOptions = configuration.GetSection(OllamaOptions.SectionName).Get<OllamaOptions>() ?? new OllamaOptions();
         var openRouterOptions = configuration.GetSection(OpenRouterOptions.SectionName).Get<OpenRouterOptions>() ?? new OpenRouterOptions();
