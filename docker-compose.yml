@@ -5,7 +5,11 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-ChangeMe_LocalDevOnly!}
     ports:
-      - "1433:1433"
+      # Host port 14330, not the default 1433 — avoids clashing with any other local SQL Server
+      # instance (e.g. a different project's container) already bound to 1433 on the host.
+      # Container-to-container traffic (the API's ConnectionStrings__Default) uses "mssql,1433" on the
+      # compose network regardless, so this only affects connecting from the host machine itself.
+      - "14330:1433"
     volumes:
       - mssql-data:/var/opt/mssql
     healthcheck:
