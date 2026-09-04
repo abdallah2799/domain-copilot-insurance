@@ -43,3 +43,15 @@ A claim with two or more indicators from Section 2, or any single indicator invo
 ## 5. Relationship to the Adjudication Sequence
 
 SIU referral sits alongside — not instead of — the standard five-step adjudication sequence described in the Claims Adjudication Guidelines. A referred claim still proceeds through policy-version matching, coverage evaluation, and exclusion detection; SIU findings are an additional input to Step 5 (drafting the recommendation), not a replacement for the deterministic payout computation in Step 4.
+
+## 6. Investigative Techniques Available to SIU
+
+Once a claim is referred, SIU may use any of the investigative tools described in Policy Wording Section 12: an examination under oath, a recorded statement beyond the routine intake narrative, an independent medical examination where a bodily injury claim is involved, or a vehicle inspection beyond the standard pre-repair inspection. These tools are available to any adjuster under the policy's general claims-handling terms; SIU referral means they are being used specifically to test a fraud indicator, not that they become available only upon referral.
+
+## 7. Outcomes of an SIU Referral
+
+An SIU referral concludes in one of three ways: the indicators are resolved with no further action and the claim returns to standard adjudication; additional documentation requirements are imposed on the claim before adjudication proceeds; or the claim is denied on a specific, cited basis (a policy exclusion, a material misrepresentation, or a proven fraudulent claim under Policy Wording Section 7.4/7.7's concealment-or-fraud provision) — never denied merely because a referral occurred, without a specific finding.
+
+## 8. Indicators That Are Not, By Themselves, Sufficient
+
+A claim occurring shortly after a coverage increase, on its own, is common and often entirely legitimate (a policyholder who just added Comprehensive coverage before a first snowstorm, for example). No single indicator in Section 2 is sufficient by itself to deny a claim or to treat a policyholder as presumptively dishonest; this guide exists to flag patterns worth a closer look, not to create a checklist for automatic denial.

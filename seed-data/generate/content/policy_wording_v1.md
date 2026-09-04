@@ -165,6 +165,74 @@ Where permitted by the law of the state shown on the Declarations page, and wher
 
 Each party selects one arbitrator; the two arbitrators select a third. A decision agreed to by any two of the three arbitrators is binding.
 
+## Section 11 — Additional Conditions
+
+### 11.1 Legal Action Against Us
+
+No legal action may be brought against us until there has been full compliance with all the terms of this policy, and, under Part A, until the amount of an insured's obligation has been finally determined either by judgment against the insured after trial or by written agreement of the insured, the claimant, and us.
+
+### 11.2 Bankruptcy
+
+Bankruptcy or insolvency of an insured does not relieve us of any of our obligations under this policy.
+
+### 11.3 Two or More Auto Policies Issued by Us
+
+If this policy and any other auto policy we have issued to you apply to the same accident, the maximum limit of our liability under all the policies combined will not exceed the highest applicable limit of liability under any one policy.
+
+### 11.4 Trailers
+
+Your covered auto includes a trailer owned by you while it is attached to a covered auto, subject to Part A liability limits. A trailer is not covered under Part D unless a Trailer Coverage Endorsement is attached and listed on the Declarations page.
+
+### 11.5 Named Driver Exclusion
+
+Where a Named Driver Exclusion Endorsement lists a specific person, no coverage of any kind applies under this policy for that person's operation of any vehicle, including the covered auto, for as long as the endorsement remains attached. This is stricter than the general provision in Part F excluding coverage for a specific loss while an excluded driver operates the covered auto — a Named Driver Exclusion Endorsement excludes the named person entirely, not just a specific loss.
+
+### 11.6 Two or More Covered Autos
+
+Where the Declarations page lists more than one covered auto, the terms of this policy apply separately to each, except that the Liability limits shown apply to the accident, not per vehicle involved, consistent with Section 2.2.
+
+## Section 12 — Additional Coverage Procedures and Policyholder Rights
+
+### 12.1 Proof of Loss
+
+For a claim under Part D, we may require you to submit a sworn proof of loss on a form we provide, within 60 days of our request, itemizing the property damaged or lost, its value, and the amount claimed. Failure to submit a required proof of loss within a reasonable time may delay, but does not automatically forfeit, an otherwise valid claim, unless the delay materially prejudices our ability to investigate.
+
+### 12.2 Examination Under Oath
+
+As part of our investigation of any claim, we may require an insured or claimant to submit to an examination under oath, as often as reasonably required, and to sign a transcript of that examination. This is a formal investigative tool distinct from the routine claim narrative taken at intake.
+
+### 12.3 Recorded Statements
+
+We may request a recorded statement from an insured or a claimant regarding the circumstances of a loss. Providing a recorded statement is not, by itself, an admission of fault or a waiver of any right under this policy.
+
+### 12.4 Independent Medical Examination
+
+Where a claim involves Medical Payments Coverage (Part B) or a bodily injury claim under Uninsured/Underinsured Motorist Coverage (Part C), we may require the injured person to submit to an independent medical examination by a physician we select, as often as reasonably required, at our expense.
+
+### 12.5 Vehicle Inspection Requirements
+
+Before we pay a Part D claim, we may require the covered auto to be made available for inspection, including a pre-repair inspection, at a reasonable time and place we designate.
+
+### 12.6 Salvage Retention Rights
+
+If we pay a total loss claim and you wish to retain the damaged vehicle, we will reduce the settlement by the vehicle's documented salvage value and the resulting title will carry a salvage brand, consistent with the Total Loss Valuation Methodology and applicable state title requirements.
+
+### 12.7 Non-Duplication of Benefits
+
+Amounts payable under Part B (Medical Payments) are reduced by amounts paid or payable for the same expenses under any workers' compensation law or any health insurance plan that itself provides for such a reduction — this policy does not stack with another source that pays the same medical expense, though it does not require a claimant to exhaust health insurance first unless that other plan's own terms require coordination.
+
+### 12.8 Diminished Value and Betterment
+
+We do not pay for diminished resale value of a repaired covered auto. Where a repair replaces a part with a new part of materially better condition than the part it replaces (for example, new tires replacing significantly worn ones), we may apply a betterment deduction reflecting that improvement, disclosed to you as part of the repair estimate.
+
+### 12.9 Emergency Road Service and Towing
+
+Where the Declarations page shows the Roadside Assistance Endorsement (END-RA-01) is attached, towing and labor costs at the scene of a covered breakdown are payable up to that endorsement's limit, without application of any Part D deductible. Without that endorsement attached, towing following a covered Part D loss is payable only as part of the loss itself, not as a separate emergency-service benefit.
+
+### 12.10 Electronic Communications and Notice
+
+Where you have consented to electronic delivery, any notice, statement, or communication this policy requires may be delivered electronically and is treated as received when transmitted to the address or number you provided, unless we receive notice that delivery failed.
+
 ## Appendix — Illustrative Payout Examples (Part D)
 
 These examples illustrate how Section 5 applies; they do not modify the coverage itself, and the actual computation for any real claim uses the figures on that claim's own Declarations page.

@@ -80,6 +80,39 @@ PROSE_DOCS = [
     ("ohio_total_loss_title", "Ohio Total Loss and Salvage Title Requirements", "reference", None),
     ("training_scenarios", "Claims Adjudication Training Scenarios", "reference", None),
     ("version_comparison", "Policy Form Version Comparison — PAP-2024-STD vs. PAP-2025-STD", "reference", None),
+    ("pii_data_handling", "Data Privacy and PII Handling Policy", "reference", None),
+    ("subrogation_guide", "Subrogation and Litigation Hold Guide", "reference", None),
+    ("cat_claims_protocol", "Catastrophe (CAT) Claims Surge Protocol", "reference", None),
+    ("unfair_claims_practices", "Ohio Unfair Claims Settlement Practices Reference", "reference", None),
+    ("telematics_program", "Telematics and Usage-Based Insurance Program Terms", "reference", None),
+    ("claims_handling_manual", "Personal Auto Claims Handling Procedures Manual", "reference", None),
+    ("rating_and_rules_manual", "Personal Auto Rating and Rules Manual", "reference", None),
+    ("regulatory_compendium", "Ohio Auto Insurance Regulatory Compendium", "reference", None),
+    ("claim_scenario_workbook", "Claim Scenario Workbook — Extended Worked Examples", "reference", None),
+    ("coverage_interpretation_notes", "Coverage Interpretation Notes — Frequently Disputed Provisions", "reference", None),
+    ("reserving_guide", "Claims Financial Reserving Guide", "reference", None),
+    ("vendor_network_guide", "Vendor and Repair Network Management Guide", "reference", None),
+    ("quality_audit_program", "Claims Quality Assurance and Audit Program", "reference", None),
+    ("agent_appointment_manual", "Agent Appointment and Errors & Omissions Reference", "reference", None),
+    ("rental_reimbursement_guide", "Rental Reimbursement and Loss of Use Claims Guide", "reference", None),
+    ("litigation_referral_guide", "Claims Litigation and Legal Referral Guide", "reference", None),
+    ("diminished_value_guide", "Diminished Value Claims Reference", "reference", None),
+    ("um_uim_claims_guide", "Uninsured and Underinsured Motorist Claims Handling Guide", "reference", None),
+    ("salvage_disposition_guide", "Salvage and Total Loss Vehicle Disposition Guide", "reference", None),
+    ("claim_reopening_appeals_guide", "Claim Reopening and Internal Appeals Guide", "reference", None),
+    ("roadside_towing_guide", "Roadside Assistance and Towing Coverage Guide", "reference", None),
+    ("customer_communication_standards", "Claims Customer Communication Standards", "reference", None),
+    ("non_owned_vehicle_guide", "Non-Owned and Borrowed Vehicle Coverage Guide", "reference", None),
+    ("glass_windshield_claims_guide", "Glass and Windshield Claims Guide", "reference", None),
+    ("multi_vehicle_policy_guide", "Multi-Vehicle Policy and Household Structure Guide", "reference", None),
+    ("weather_catastrophe_claims_guide", "Weather-Related and Non-Declared Catastrophe Claims Guide", "reference", None),
+    ("new_vehicle_replacement_guide", "New Vehicle Replacement Cost Coverage Guide", "reference", None),
+    ("med_pay_pip_coordination_guide", "Medical Payments Coverage and Coordination Guide", "reference", None),
+    ("policy_cancellation_nonrenewal_guide", "Policy Cancellation and Non-Renewal Reference", "reference", None),
+    ("claims_data_privacy_retention_guide", "Claims Data Retention and Access Control Guide", "reference", None),
+    ("claim_intake_triage_guide", "Claim Intake and Triage Guide", "reference", None),
+    ("deductible_selection_reference", "Deductible Selection and Application Reference", "reference", None),
+    ("rideshare_delivery_use_guide", "Rideshare and Delivery Use Coverage Guide", "reference", None),
 ]
 
 
@@ -214,6 +247,28 @@ ENDORSEMENT_TEXT = {
         "cancellation and non-renewal notice periods described in the Underwriting Guidelines, "
         "Section 7. Where this endorsement conflicts with the base Policy Wording, this endorsement "
         "controls for policies garaged in Ohio.",
+    ),
+    "END-TEL-01": (
+        "Telematics Program Enrollment Endorsement",
+        "This endorsement enrolls the covered auto in Meridian Mutual's usage-based insurance "
+        "program described in the Telematics and Usage-Based Insurance Program Terms. Enrollment "
+        "affects premium calculation at renewal only; it does not modify coverage, limits, "
+        "deductibles, or how a claim under this policy is adjudicated.",
+    ),
+    "END-UMPD-01": (
+        "Uninsured Motorist Property Damage Endorsement",
+        "This endorsement extends Uninsured Motorist Coverage (Policy Wording Part C) to property "
+        "damage to the covered auto caused by an identified uninsured driver, up to $3,500, subject "
+        "to a $250 deductible. This is separate from Collision Coverage and applies whether or not "
+        "the covered auto carries Collision Coverage on the Declarations page.",
+    ),
+    "END-NVR-01": (
+        "New Vehicle Replacement Cost Endorsement",
+        "For a covered auto in its first model year of ownership that is declared a total loss "
+        "under the Total Loss Valuation Methodology, this endorsement pays the cost of a new "
+        "replacement vehicle of the same make and model, rather than the Actual Cash Value "
+        "otherwise used for total loss settlement, subject to the endorsement's own $5,000 limit "
+        "above the ACV figure.",
     ),
 }
 

@@ -48,3 +48,15 @@ When a policy renews, it renews onto the Policy Form edition current at the rene
 ## 7. Non-Renewal and Cancellation
 
 Meridian Mutual may non-renew a policy at the end of its term for underwriting reasons (e.g., excessive claims frequency) with at least 30 days' written notice, or cancel mid-term only for non-payment of premium, material misrepresentation, or license suspension, subject to the notice periods required by Ohio law. Non-renewal or cancellation does not affect coverage for a loss that occurred while the policy was in force.
+
+## 8. Material Misrepresentation
+
+An application answer is material if a truthful answer would have caused Meridian Mutual to decline the risk, charge a materially higher premium, or apply different terms. A misrepresentation discovered after a loss does not automatically void coverage for that loss — it is evaluated against this materiality standard, and the outcome (rescission, reformation of terms, or no action) is an underwriting determination separate from, and does not retroactively alter, the coverage analysis in the Claims Adjudication Guidelines for a loss otherwise properly adjudicated before the misrepresentation was discovered.
+
+## 9. Household Composition Changes
+
+A newly licensed household member, a household member's vehicle being added, or a household member no longer residing with the policyholder all require an underwriting update at the time of the change, not merely at renewal — since Part A's "Who Is An Insured" provision (Policy Wording Section 2.3) extends to resident relatives, an unreported change in household composition can create a coverage gap or an unpriced exposure that underwriting review is meant to catch promptly.
+
+## 10. Vehicle Substitution and Newly Acquired Vehicles
+
+Policy Wording Section 1's definition of "your covered auto" extends coverage to a newly acquired vehicle or a temporary substitute vehicle for a limited period without requiring immediate underwriting action, but the policyholder must report the acquisition within the period stated in that definition for coverage to continue on that vehicle beyond it. This grace period exists precisely so a policyholder is not left uninsured in the days immediately following a vehicle purchase or a breakdown requiring a substitute vehicle.

@@ -1,6 +1,6 @@
 # Seed corpus — Meridian Mutual Personal Auto (synthetic)
 
-`corpus/` is the committed output: **109 documents, 156 pages**, entirely synthetic (no real people, companies, addresses, or records) — see `generate/facts.py` for the master fact sheet everything is derived from. This satisfies the brief's ≥30 document / 150+ page floor with margin.
+`corpus/` is the committed output: **145 documents total**, entirely synthetic (no real people, companies, addresses, or records) — see `generate/facts.py` for the master fact sheet everything is derived from. Of these, the **searchable knowledge-corpus subset** — `policy-forms/`, `endorsements/`, and `reference/`, the only categories actually embedded and indexed per ADR-0004's knowledge-vs-case-data split — is **60 documents, 151 pages**, which is the figure the brief's ≥30 document / 150+ page floor is measured against, since `declarations/` and `claims/` are deliberately excluded from retrieval. This was verified, not assumed: a real `POST /api/ingestion/knowledge-corpus` run against the committed corpus completed all 60 documents with zero failures, cross-checked against Qdrant's `points_count` and `GET /api/documents`.
 
 ## What's in the corpus
 
@@ -8,9 +8,9 @@
 |---|---|---|
 | `policy-forms/` | Two dated Policy Wording editions (PAP-2024-STD, PAP-2025-STD) with four deliberate, documented differences between them, plus their matching Standard Exclusions Addenda | PDF |
 | `declarations/` | One Declarations page per synthetic policyholder (18), stating their specific limits, deductibles, and endorsements | DOCX |
-| `endorsements/` | 8 distinct endorsement form templates (ride-share, custom equipment, GAP, etc.) | DOCX |
+| `endorsements/` | 11 distinct endorsement form templates (ride-share, custom equipment, GAP, telematics, uninsured motorist property damage, new-vehicle replacement, etc.) | DOCX |
 | `claims/` | Per-claim (18 claims): repair estimate, adjuster case notes (walking the five-step adjudication sequence), a **scanned** claim intake form, and — where applicable — a **scanned** incident report summary | DOCX + image-only PDF |
-| `reference/` | Adjudication guidelines, underwriting guidelines, SIU fraud indicators, total-loss methodology, Ohio regulatory reference, glossary, FAQ, training scenarios, version-comparison matrix | PDF |
+| `reference/` | 45 documents: adjudication guidelines, underwriting guidelines, SIU fraud indicators, total-loss methodology, Ohio regulatory reference, glossary, FAQ, training scenarios, version-comparison matrix, plus claims-operations reference guides covering reserving, vendor/repair network management, quality audit, subrogation, litigation referral, UM/UIM, diminished value, salvage disposition, rental reimbursement, medical payments coordination, cancellation/non-renewal, data retention, intake/triage, deductible application, rideshare/delivery use, and more | PDF |
 
 `manifest.json` lists every document with its category, format, and any associated policy/claim number and form version — useful for building ingestion test fixtures without re-deriving this from filenames.
 
