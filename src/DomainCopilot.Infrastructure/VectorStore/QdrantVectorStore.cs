@@ -1,4 +1,6 @@
+using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Application.VectorStore;
+using DomainCopilot.Domain.Documents;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
@@ -47,6 +49,77 @@ public sealed class QdrantVectorStore(QdrantClient client) : IVectorStore
 
         Filter filter = Conditions.MatchKeyword("documentId", documentId.ToString());
         await client.DeleteAsync(CollectionName, filter, cancellationToken: cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ScoredChunk>> SearchAsync(
+        ReadOnlyMemory<float> queryEmbedding,
+        int topK,
+        RetrievalFilter? filter = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!await client.CollectionExistsAsync(CollectionName, cancellationToken))
+        {
+            return [];
+        }
+
+        var points = await client.QueryAsync(
+            CollectionName,
+            query: queryEmbedding.ToArray(),
+            filter: BuildFilter(filter),
+            limit: (ulong)topK,
+            payloadSelector: true,
+            cancellationToken: cancellationToken);
+
+        return [.. points.Select(ToScoredChunk)];
+    }
+
+    private static Filter? BuildFilter(RetrievalFilter? filter)
+    {
+        if (filter is null || (filter.Category is null && filter.FormVersion is null))
+        {
+            return null;
+        }
+
+        var result = new Filter();
+
+        if (filter.Category is { } category)
+        {
+            result.Must.Add(Conditions.MatchKeyword("category", category.ToString()));
+        }
+
+        if (filter.FormVersion is { } formVersion)
+        {
+            // A chunk matches when it's tagged with this exact version, OR carries no version at
+            // all (reference material, most endorsements) — version-agnostic content must stay
+            // visible regardless of which policy edition governs the query.
+            var versionOrUntagged = new Filter();
+            versionOrUntagged.Should.Add(Conditions.MatchKeyword("formVersion", formVersion));
+            versionOrUntagged.Should.Add(Conditions.IsEmpty("formVersion"));
+            result.Must.Add(Conditions.Filter(versionOrUntagged));
+        }
+
+        return result;
+    }
+
+    private static ScoredChunk ToScoredChunk(ScoredPoint point)
+    {
+        var payload = point.Payload;
+        var pageNumber = payload.TryGetValue("pageNumber", out var pageValue) ? (int?)pageValue.IntegerValue : null;
+        var formVersion = payload.TryGetValue("formVersion", out var versionValue) ? versionValue.StringValue : null;
+        var effectiveDate = payload.TryGetValue("effectiveDate", out var dateValue) && DateOnly.TryParse(dateValue.StringValue, out var parsed)
+            ? parsed
+            : (DateOnly?)null;
+
+        return new ScoredChunk(
+            Guid.Parse(payload["documentId"].StringValue),
+            (int)payload["chunkIndex"].IntegerValue,
+            payload["sectionTitle"].StringValue,
+            pageNumber,
+            Enum.Parse<DocumentCategory>(payload["category"].StringValue),
+            formVersion,
+            effectiveDate,
+            payload["text"].StringValue,
+            point.Score);
     }
 
     private static PointStruct ToPointStruct(VectorRecord record)

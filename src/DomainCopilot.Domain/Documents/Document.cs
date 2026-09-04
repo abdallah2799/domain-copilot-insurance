@@ -27,6 +27,11 @@ public sealed class Document
     /// versioned per policy edition.</summary>
     public string? FormVersion { get; private set; }
 
+    /// <summary>The date this <see cref="FormVersion"/> took effect. Only meaningful alongside
+    /// <see cref="FormVersion"/> — retrieval's version resolver (FR-2) reads this to pick the
+    /// governing policy version for a given date of loss, per D2's named version-risk.</summary>
+    public DateOnly? EffectiveDate { get; private set; }
+
     public IngestionStatus Status { get; private set; }
     public string? ErrorMessage { get; private set; }
 
@@ -50,7 +55,8 @@ public sealed class Document
         DocumentFormat format,
         string sourceFileName,
         string contentHash,
-        string? formVersion = null)
+        string? formVersion = null,
+        DateOnly? effectiveDate = null)
     {
         if (string.IsNullOrWhiteSpace(sourceId))
         {
@@ -73,6 +79,7 @@ public sealed class Document
             SourceFileName = sourceFileName,
             ContentHash = contentHash,
             FormVersion = formVersion,
+            EffectiveDate = effectiveDate,
             Status = IngestionStatus.Pending,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
@@ -119,11 +126,12 @@ public sealed class Document
 
     /// <summary>Updates content-derived fields ahead of reprocessing a changed source file, without
     /// losing the original <see cref="Id"/>/<see cref="SourceId"/> identity.</summary>
-    public void UpdateContent(string title, string contentHash, string? formVersion)
+    public void UpdateContent(string title, string contentHash, string? formVersion, DateOnly? effectiveDate)
     {
         Title = title;
         ContentHash = contentHash;
         FormVersion = formVersion;
+        EffectiveDate = effectiveDate;
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 }

@@ -1,10 +1,12 @@
 using DomainCopilot.Application.Documents;
 using DomainCopilot.Application.Ingestion;
 using DomainCopilot.Application.Providers;
+using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Application.VectorStore;
 using DomainCopilot.Infrastructure.Ingestion;
 using DomainCopilot.Infrastructure.Persistence;
 using DomainCopilot.Infrastructure.Providers;
+using DomainCopilot.Infrastructure.Retrieval;
 using DomainCopilot.Infrastructure.VectorStore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -76,6 +78,13 @@ public static class DependencyInjection
         services.AddSingleton<IDocumentExtractor, CompositeDocumentExtractor>();
         services.AddSingleton<KnowledgeChunker>();
         services.AddSingleton<IVectorStore, QdrantVectorStore>();
+
+        // Hybrid retrieval (FR-2, ADR-0005): dense (Qdrant, above) + keyword (BM25 over chunk rows
+        // persisted in MSSQL), fused with Reciprocal Rank Fusion.
+        services.AddSingleton<Bm25Scorer>();
+        services.AddScoped<IKeywordSearchIndex, EfCoreKeywordSearchIndex>();
+        services.AddScoped<HybridRetrievalService>();
+
         services.AddScoped<KnowledgeIngestionService>();
 
         return services;
