@@ -1,3 +1,4 @@
+using DomainCopilot.Application.Adjudication;
 using DomainCopilot.Application.Documents;
 using DomainCopilot.Application.Ingestion;
 using DomainCopilot.Application.Providers;
@@ -86,6 +87,18 @@ public static class DependencyInjection
         services.AddScoped<HybridRetrievalService>();
 
         services.AddScoped<KnowledgeIngestionService>();
+
+        // Deterministic payout tools (D2's non-negotiable control): each is registered both by its
+        // concrete type (for direct use) and as IPayoutToolExecutor (so an orchestrator can resolve
+        // the full set and dispatch by ToolDefinition.Name — see ADR-0006).
+        services.AddSingleton<StandardPayoutToolExecutor>();
+        services.AddSingleton<IPayoutToolExecutor>(sp => sp.GetRequiredService<StandardPayoutToolExecutor>());
+        services.AddSingleton<TotalLossDeterminationToolExecutor>();
+        services.AddSingleton<IPayoutToolExecutor>(sp => sp.GetRequiredService<TotalLossDeterminationToolExecutor>());
+        services.AddSingleton<TotalLossSettlementToolExecutor>();
+        services.AddSingleton<IPayoutToolExecutor>(sp => sp.GetRequiredService<TotalLossSettlementToolExecutor>());
+        services.AddSingleton<GapCoverageToolExecutor>();
+        services.AddSingleton<IPayoutToolExecutor>(sp => sp.GetRequiredService<GapCoverageToolExecutor>());
 
         return services;
     }

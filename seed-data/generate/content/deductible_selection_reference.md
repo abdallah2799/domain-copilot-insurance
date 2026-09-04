@@ -12,7 +12,7 @@ A policyholder selects separate deductibles for Part D (Collision) and Part C (O
 
 ## 2. Deductible Application Order
 
-Where a payout computation involves both a deductible and a coverage limit, the deductible is subtracted from the loss amount first, and the coverage limit is then applied as a ceiling on the result — not the other way around. The deterministic calculation service applies this order consistently across every coverage part in this corpus, and the order is stated explicitly here because reversing it can produce a materially different, incorrect result on a loss near the limit.
+Where a payout computation involves both a deductible and a coverage limit, the coverage limit is applied as a ceiling on the estimated damage first, and the deductible is then subtracted from that capped figure — not the other way around, per the formula in the Claims Adjudication Guidelines, Step 4 (`payout = min(estimated_damage, applicable_limit) - applicable_deductible`). The deterministic calculation service applies this order consistently across every coverage part in this corpus, and the order is stated explicitly here because reversing it can produce a materially different, incorrect result on a loss that exceeds the limit: capping first means the deductible always reduces the policyholder's own recovery, never the insurer's exposure above the limit.
 
 ## 3. Single Deductible Per Occurrence
 
