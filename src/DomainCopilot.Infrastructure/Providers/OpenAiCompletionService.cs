@@ -10,11 +10,9 @@ public sealed class OpenAiCompletionService : ICompletionService
 
     public OpenAiCompletionService(OpenAiOptions options)
     {
-        var kernel = Kernel.CreateBuilder()
+        _adapter = new SemanticKernelCompletionAdapter(ProviderName, options.Model, () => Kernel.CreateBuilder()
             .AddOpenAIChatCompletion(options.Model, options.ApiKey)
-            .Build();
-
-        _adapter = new SemanticKernelCompletionAdapter(ProviderName, options.Model, kernel);
+            .Build());
     }
 
     public string ProviderName => "OpenAI";

@@ -14,11 +14,9 @@ public sealed class OllamaCompletionService : ICompletionService
 
     public OllamaCompletionService(OllamaOptions options)
     {
-        var kernel = Kernel.CreateBuilder()
+        _adapter = new SemanticKernelCompletionAdapter(ProviderName, options.Model, () => Kernel.CreateBuilder()
             .AddOpenAIChatCompletion(options.Model, options.ChatCompletionEndpoint, apiKey: "ollama")
-            .Build();
-
-        _adapter = new SemanticKernelCompletionAdapter(ProviderName, options.Model, kernel);
+            .Build());
     }
 
     public string ProviderName => "Ollama";

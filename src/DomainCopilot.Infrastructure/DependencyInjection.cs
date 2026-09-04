@@ -1,5 +1,8 @@
 using DomainCopilot.Application.Documents;
+using DomainCopilot.Application.Ingestion;
 using DomainCopilot.Application.Providers;
+using DomainCopilot.Application.VectorStore;
+using DomainCopilot.Infrastructure.Ingestion;
 using DomainCopilot.Infrastructure.Persistence;
 using DomainCopilot.Infrastructure.Providers;
 using DomainCopilot.Infrastructure.VectorStore;
@@ -7,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Qdrant.Client;
+using IVectorStore = DomainCopilot.Application.VectorStore.IVectorStore;
 
 namespace DomainCopilot.Infrastructure;
 
@@ -65,6 +69,14 @@ public static class DependencyInjection
             sp.GetRequiredService<OllamaEmbeddingService>(),
             sp.GetRequiredService<OpenAiEmbeddingService>(),
             sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<FallbackEmbeddingService>>()));
+
+        // Knowledge-corpus ingestion pipeline (ADR-0004): extract -> clean -> chunk -> embed -> index.
+        services.AddSingleton<PdfKnowledgeExtractor>();
+        services.AddSingleton<DocxKnowledgeExtractor>();
+        services.AddSingleton<IDocumentExtractor, CompositeDocumentExtractor>();
+        services.AddSingleton<KnowledgeChunker>();
+        services.AddSingleton<IVectorStore, QdrantVectorStore>();
+        services.AddScoped<KnowledgeIngestionService>();
 
         return services;
     }

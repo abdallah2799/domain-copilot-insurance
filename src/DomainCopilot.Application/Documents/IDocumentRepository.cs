@@ -10,6 +10,9 @@ public interface IDocumentRepository
 
     Task<IReadOnlyList<Document>> ListByStatusAsync(IngestionStatus status, CancellationToken cancellationToken = default);
 
+    /// <summary>FR-1 per-document status reporting — every ingested document, regardless of status.</summary>
+    Task<IReadOnlyList<Document>> ListAllAsync(CancellationToken cancellationToken = default);
+
     Task AddAsync(Document document, CancellationToken cancellationToken = default);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);

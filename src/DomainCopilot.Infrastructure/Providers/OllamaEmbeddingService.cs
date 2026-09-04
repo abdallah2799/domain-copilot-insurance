@@ -13,17 +13,21 @@ namespace DomainCopilot.Infrastructure.Providers;
 /// <summary>Local/offline embedding leg — same OpenAI-compatible-endpoint approach as <see cref="OllamaCompletionService"/>.</summary>
 public sealed class OllamaEmbeddingService : IEmbeddingService
 {
-    private readonly ITextEmbeddingGenerationService _embeddingService;
+    // Lazy for consistency with OpenAiEmbeddingService — this leg's key is always a hardcoded
+    // placeholder so it can't fail the same way, but deferring construction until first use is
+    // still the right default for every provider adapter, not just the ones known to be at risk.
+    private readonly Lazy<ITextEmbeddingGenerationService> _embeddingService;
 
     public OllamaEmbeddingService(OllamaOptions options)
     {
-        var client = new OpenAIClient(new ApiKeyCredential("ollama"), new OpenAIClientOptions { Endpoint = options.ChatCompletionEndpoint });
-
-        var kernel = Kernel.CreateBuilder()
-            .AddOpenAITextEmbeddingGeneration(options.EmbeddingModel, client)
-            .Build();
-
-        _embeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+        _embeddingService = new Lazy<ITextEmbeddingGenerationService>(() =>
+        {
+            var client = new OpenAIClient(new ApiKeyCredential("ollama"), new OpenAIClientOptions { Endpoint = options.ChatCompletionEndpoint });
+            return Kernel.CreateBuilder()
+                .AddOpenAITextEmbeddingGeneration(options.EmbeddingModel, client)
+                .Build()
+                .GetRequiredService<ITextEmbeddingGenerationService>();
+        });
     }
 
     public string ProviderName => "Ollama";
@@ -32,7 +36,7 @@ public sealed class OllamaEmbeddingService : IEmbeddingService
     {
         try
         {
-            var embeddings = await _embeddingService.GenerateEmbeddingsAsync([.. texts], cancellationToken: cancellationToken);
+            var embeddings = await _embeddingService.Value.GenerateEmbeddingsAsync([.. texts], cancellationToken: cancellationToken);
             return [.. embeddings];
         }
         catch (Exception ex)
