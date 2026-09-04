@@ -14,15 +14,19 @@ namespace DomainCopilot.Infrastructure.Providers;
 
 public sealed class OpenAiEmbeddingService : IEmbeddingService
 {
-    private readonly ITextEmbeddingGenerationService _embeddingService;
+    // Lazy: Semantic Kernel validates the API key the moment the Kernel is built. This is the
+    // embeddings fallback leg (ADR-0003 update) — building eagerly would mean an unconfigured
+    // OpenAI key crashes DI resolution for IEmbeddingService entirely, even though Ollama (primary)
+    // never needed OpenAI at all. Building lazily means "no key configured" only fails if this
+    // leg is actually reached.
+    private readonly Lazy<ITextEmbeddingGenerationService> _embeddingService;
 
     public OpenAiEmbeddingService(OpenAiOptions options)
     {
-        var kernel = Kernel.CreateBuilder()
+        _embeddingService = new Lazy<ITextEmbeddingGenerationService>(() => Kernel.CreateBuilder()
             .AddOpenAITextEmbeddingGeneration(options.EmbeddingModel, options.ApiKey)
-            .Build();
-
-        _embeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+            .Build()
+            .GetRequiredService<ITextEmbeddingGenerationService>());
     }
 
     public string ProviderName => "OpenAI";
@@ -31,7 +35,7 @@ public sealed class OpenAiEmbeddingService : IEmbeddingService
     {
         try
         {
-            var embeddings = await _embeddingService.GenerateEmbeddingsAsync([.. texts], cancellationToken: cancellationToken);
+            var embeddings = await _embeddingService.Value.GenerateEmbeddingsAsync([.. texts], cancellationToken: cancellationToken);
             return [.. embeddings];
         }
         catch (Exception ex)

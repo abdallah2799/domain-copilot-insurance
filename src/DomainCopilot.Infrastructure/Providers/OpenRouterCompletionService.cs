@@ -15,11 +15,9 @@ public sealed class OpenRouterCompletionService : ICompletionService
 
     public OpenRouterCompletionService(OpenRouterOptions options)
     {
-        var kernel = Kernel.CreateBuilder()
+        _adapter = new SemanticKernelCompletionAdapter(ProviderName, options.Model, () => Kernel.CreateBuilder()
             .AddOpenAIChatCompletion(options.Model, options.ChatCompletionEndpoint, options.ApiKey)
-            .Build();
-
-        _adapter = new SemanticKernelCompletionAdapter(ProviderName, options.Model, kernel);
+            .Build());
     }
 
     public string ProviderName => "OpenRouter";

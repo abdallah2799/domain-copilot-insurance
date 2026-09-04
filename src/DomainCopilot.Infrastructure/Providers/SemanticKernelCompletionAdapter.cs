@@ -13,19 +13,31 @@ namespace DomainCopilot.Infrastructure.Providers;
 /// <see cref="OllamaCompletionService"/> (Ollama is driven through SK's OpenAI connector against
 /// its OpenAI-compatible endpoint) — the two providers differ only in how the underlying
 /// <see cref="Kernel"/> is built, not in how requests/responses are translated.
+///
+/// <paramref name="kernelFactory"/> is invoked lazily, on first actual use — not eagerly at
+/// construction. Semantic Kernel validates its API key the moment the Kernel is built, so building
+/// eagerly would mean a provider with no key configured (e.g. an unused fallback leg) crashes DI
+/// resolution for anyone who needs the port at all, even if that leg is never actually called.
 /// </summary>
-internal sealed class SemanticKernelCompletionAdapter(string providerName, string modelId, Kernel kernel)
+internal sealed class SemanticKernelCompletionAdapter(string providerName, string modelId, Func<Kernel> kernelFactory)
 {
-    private readonly IChatCompletionService _chatService = kernel.GetRequiredService<IChatCompletionService>();
+    private readonly Lazy<Kernel> _kernel = new(kernelFactory);
+    private Lazy<IChatCompletionService>? _chatService;
+
+    private IChatCompletionService ChatService => (_chatService ??= new Lazy<IChatCompletionService>(() => Kernel.GetRequiredService<IChatCompletionService>())).Value;
+
+    private Kernel Kernel => _kernel.Value;
 
     public async Task<CompletionResult> CompleteAsync(CompletionRequest request, CancellationToken cancellationToken)
     {
         try
         {
+            var kernel = Kernel;
+            var chatService = ChatService;
             var history = BuildHistory(request);
             var settings = BuildSettings(request);
 
-            var results = await _chatService.GetChatMessageContentsAsync(history, settings, kernel, cancellationToken);
+            var results = await chatService.GetChatMessageContentsAsync(history, settings, kernel, cancellationToken);
             var message = results[0];
 
             var toolCalls = message.Items
@@ -45,10 +57,12 @@ internal sealed class SemanticKernelCompletionAdapter(string providerName, strin
         CompletionRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        var kernel = Kernel;
+        var chatService = ChatService;
         var history = BuildHistory(request);
         var settings = BuildSettings(request);
 
-        var enumerator = _chatService
+        var enumerator = chatService
             .GetStreamingChatMessageContentsAsync(history, settings, kernel, cancellationToken)
             .GetAsyncEnumerator(cancellationToken);
 

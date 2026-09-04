@@ -39,7 +39,7 @@ public sealed class DocumentRepositoryTests : IAsyncLifetime
             sourceId: sourceId,
             title: "Policy Wording — PAP-2024-STD",
             category: DocumentCategory.PolicyForm,
-            format: DocumentFormat.Pdf,
+            format: DomainCopilot.Domain.Documents.DocumentFormat.Pdf,
             sourceFileName: "policy-forms/policy_wording_v1.pdf",
             contentHash: contentHash,
             formVersion: "PAP-2024-STD");
