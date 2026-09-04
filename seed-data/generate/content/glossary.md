@@ -21,3 +21,43 @@
 - **Total Loss** — A covered auto for which the cost of repair plus salvage value equals or exceeds its actual cash value before the loss.
 - **Underinsured Motorist (UIM) Coverage** — Coverage for bodily injury caused by a driver whose own liability limits are insufficient to cover the insured's damages.
 - **Uninsured Motorist (UM) Coverage** — Coverage for bodily injury caused by a driver who has no liability insurance.
+- **Anomaly Indicator** — A fact pattern in a claim (a date-of-loss/policy-period mismatch, an unexplained coverage gap) that triggers escalation rather than routine adjudication; see Claims Adjudication Guidelines, Section 3.
+- **Betterment** — A deduction applied when a repair replaces a part with one in materially better condition than the part it replaces.
+- **Binding Authority** — The scope within which a producer may commit Meridian Mutual to coverage without prior underwriter approval; see the Producer Manual Excerpt.
+- **Bodily Injury (BI)** — Bodily harm, sickness, or disease, including resulting death, as defined in Policy Wording Section 1.
+- **CAT Event (Catastrophe)** — A declared single event generating a surge of claims across a shared geographic area within a short window; see the Catastrophe Claims Surge Protocol.
+- **Claim Acknowledgment** — The insurer's confirmation of receipt of a reported claim, subject to a fixed timeline under Policy Wording Section 8.1.
+- **Claim Number** — The unique identifier assigned to a specific reported loss, distinct from the policy number.
+- **Coverage Part** — One of the lettered divisions of the Policy Wording (Part A through Part G/H), each governing a distinct category of coverage.
+- **Declarations Page Effective Date** — The date a specific Declarations page's coverage selections take effect, used to determine the governing Policy Form version for a given date of loss.
+- **Deterministic Payout Computation** — The plain, tested arithmetic (never an LLM estimate) that computes a payout figure from estimated damage, applicable limit, and applicable deductible; see Claims Adjudication Guidelines, Step 4.
+- **Diminished Value** — The reduction in a vehicle's resale value after a repair, distinct from and not compensated by the repair cost itself.
+- **Duty to Cooperate** — The insured's obligation under Part E to assist in the investigation, settlement, or defense of a claim, including providing recorded statements and submitting to examination under oath where required.
+- **Examination Under Oath (EUO)** — A formal, sworn investigative interview an insurer may require as part of claim investigation.
+- **Excluded Driver** — A person specifically listed on a Named Driver Exclusion Endorsement, for whom no coverage applies regardless of which vehicle they operate.
+- **Financial Responsibility Limits** — The state-mandated minimum liability insurance limits a vehicle owner must carry; see the Ohio Regulatory Reference.
+- **Garaging Territory** — The rating territory assigned to a covered auto based on its garaging ZIP code; see the Personal Auto Rating and Rules Manual.
+- **Glass-Only Deductible Waiver** — The PAP-2025-STD provision (Section 5.4) waiving the Comprehensive deductible for glass-only claims under $1,500.
+- **Governing Policy Form** — The specific Policy Form edition (PAP-2024-STD or PAP-2025-STD) in force on a claim's date of loss, which controls its adjudication regardless of the current calendar date.
+- **Independent Medical Examination (IME)** — A medical evaluation by a physician the insurer selects, used to assess a bodily injury claim under Part B or Part C.
+- **Litigation Hold** — The requirement to preserve claim documentation unaltered once a subrogation demand or dispute is underway; see the Subrogation and Litigation Hold Guide.
+- **Loss Payee** — A lienholder or lessor named on the Declarations page with a financial interest in a covered auto, entitled to payment under Part D as their interest appears.
+- **Non-Duplication of Benefits** — The provision preventing Medical Payments Coverage from stacking with another source, such as workers' compensation, that pays the same expense.
+- **Non-Renewal** — An insurer's election not to renew a policy at the end of its term, distinct from mid-term cancellation and subject to its own notice requirements.
+- **Owner-Retained Total Loss** — A total loss settlement in which the policyholder elects to keep the salvage vehicle, reducing the settlement by its salvage value.
+- **PII (Personally Identifiable Information)** — Data that could identify a specific individual, subject to minimum-necessary-access handling under the Data Privacy and PII Handling Policy.
+- **Point of Sale Binding** — Coverage bound by a producer at the moment of application, effective per the binder's stated date and time.
+- **Proof of Loss** — A sworn, itemized statement of a claimed loss an insurer may require before paying a Part D claim.
+- **Quality Review (Claims)** — The periodic sampling of completed claims to check for correct policy-version matching and complete citation of relied-upon policy sections; see the Claims Handling Procedures Manual.
+- **Rating Factor** — A multiplier applied to a base rate reflecting a specific risk characteristic (vehicle symbol, driving record, territory); rating factors never affect claims adjudication.
+- **Reconstructed (Rebuilt) Title** — A title issued after a previously salvage-branded vehicle passes a state safety inspection.
+- **Salvage Value** — The value of a total-loss vehicle in its damaged condition, deducted from a settlement when the policyholder retains the vehicle.
+- **SIU (Special Investigations Unit)** — The unit responsible for reviewing claims with fraud indicators before adjudication proceeds; see the SIU Fraud Indicators Guide.
+- **Statute of Limitations** — The legal deadline for filing suit, relevant to subrogation demand timing; see the Subrogation and Litigation Hold Guide.
+- **Tier Assignment** — A composite pricing classification based on insurance history, claims history, and (where permitted) credit-based insurance score.
+- **Trailer Coverage Endorsement** — An endorsement extending Part D coverage to a trailer attached to the covered auto, which is not otherwise covered under Part D.
+- **Transportation Expense Coverage (Rental Reimbursement)** — The daily/maximum allowance for temporary transportation costs during a covered Part D repair, under Policy Wording Section 5.3.
+- **Underwriting Referral** — A risk characteristic (multiple violations, an endorsement requiring disclosure) that requires underwriter review before a producer may bind coverage.
+- **Unfair Claims Settlement Practice** — A prohibited claims-handling behavior under Ohio law, such as denying a claim without reasonable investigation; see the Ohio Unfair Claims Settlement Practices Reference.
+- **Usage-Based Insurance (UBI)** — A rating program using driving-behavior data collected via telematics, affecting premium only; see the Telematics and Usage-Based Insurance Program Terms.
+- **Vehicle Inspection Requirement** — The insurer's right to require a covered auto be made available for inspection, including pre-repair inspection, before a Part D claim is paid.

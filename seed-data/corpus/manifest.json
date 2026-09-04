@@ -116,6 +116,237 @@
     "title": "Policy Form Version Comparison \u2014 PAP-2024-STD vs. PAP-2025-STD"
   },
   {
+    "id": "pii_data_handling",
+    "filename": "reference/pii_data_handling.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Data Privacy and PII Handling Policy"
+  },
+  {
+    "id": "subrogation_guide",
+    "filename": "reference/subrogation_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Subrogation and Litigation Hold Guide"
+  },
+  {
+    "id": "cat_claims_protocol",
+    "filename": "reference/cat_claims_protocol.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Catastrophe (CAT) Claims Surge Protocol"
+  },
+  {
+    "id": "unfair_claims_practices",
+    "filename": "reference/unfair_claims_practices.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Ohio Unfair Claims Settlement Practices Reference"
+  },
+  {
+    "id": "telematics_program",
+    "filename": "reference/telematics_program.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Telematics and Usage-Based Insurance Program Terms"
+  },
+  {
+    "id": "claims_handling_manual",
+    "filename": "reference/claims_handling_manual.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Personal Auto Claims Handling Procedures Manual"
+  },
+  {
+    "id": "rating_and_rules_manual",
+    "filename": "reference/rating_and_rules_manual.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Personal Auto Rating and Rules Manual"
+  },
+  {
+    "id": "regulatory_compendium",
+    "filename": "reference/regulatory_compendium.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Ohio Auto Insurance Regulatory Compendium"
+  },
+  {
+    "id": "claim_scenario_workbook",
+    "filename": "reference/claim_scenario_workbook.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Claim Scenario Workbook \u2014 Extended Worked Examples"
+  },
+  {
+    "id": "coverage_interpretation_notes",
+    "filename": "reference/coverage_interpretation_notes.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Coverage Interpretation Notes \u2014 Frequently Disputed Provisions"
+  },
+  {
+    "id": "reserving_guide",
+    "filename": "reference/reserving_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Claims Financial Reserving Guide"
+  },
+  {
+    "id": "vendor_network_guide",
+    "filename": "reference/vendor_network_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Vendor and Repair Network Management Guide"
+  },
+  {
+    "id": "quality_audit_program",
+    "filename": "reference/quality_audit_program.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Claims Quality Assurance and Audit Program"
+  },
+  {
+    "id": "agent_appointment_manual",
+    "filename": "reference/agent_appointment_manual.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Agent Appointment and Errors & Omissions Reference"
+  },
+  {
+    "id": "rental_reimbursement_guide",
+    "filename": "reference/rental_reimbursement_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Rental Reimbursement and Loss of Use Claims Guide"
+  },
+  {
+    "id": "litigation_referral_guide",
+    "filename": "reference/litigation_referral_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Claims Litigation and Legal Referral Guide"
+  },
+  {
+    "id": "diminished_value_guide",
+    "filename": "reference/diminished_value_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Diminished Value Claims Reference"
+  },
+  {
+    "id": "um_uim_claims_guide",
+    "filename": "reference/um_uim_claims_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Uninsured and Underinsured Motorist Claims Handling Guide"
+  },
+  {
+    "id": "salvage_disposition_guide",
+    "filename": "reference/salvage_disposition_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Salvage and Total Loss Vehicle Disposition Guide"
+  },
+  {
+    "id": "claim_reopening_appeals_guide",
+    "filename": "reference/claim_reopening_appeals_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Claim Reopening and Internal Appeals Guide"
+  },
+  {
+    "id": "roadside_towing_guide",
+    "filename": "reference/roadside_towing_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Roadside Assistance and Towing Coverage Guide"
+  },
+  {
+    "id": "customer_communication_standards",
+    "filename": "reference/customer_communication_standards.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Claims Customer Communication Standards"
+  },
+  {
+    "id": "non_owned_vehicle_guide",
+    "filename": "reference/non_owned_vehicle_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Non-Owned and Borrowed Vehicle Coverage Guide"
+  },
+  {
+    "id": "glass_windshield_claims_guide",
+    "filename": "reference/glass_windshield_claims_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Glass and Windshield Claims Guide"
+  },
+  {
+    "id": "multi_vehicle_policy_guide",
+    "filename": "reference/multi_vehicle_policy_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Multi-Vehicle Policy and Household Structure Guide"
+  },
+  {
+    "id": "weather_catastrophe_claims_guide",
+    "filename": "reference/weather_catastrophe_claims_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Weather-Related and Non-Declared Catastrophe Claims Guide"
+  },
+  {
+    "id": "new_vehicle_replacement_guide",
+    "filename": "reference/new_vehicle_replacement_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "New Vehicle Replacement Cost Coverage Guide"
+  },
+  {
+    "id": "med_pay_pip_coordination_guide",
+    "filename": "reference/med_pay_pip_coordination_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Medical Payments Coverage and Coordination Guide"
+  },
+  {
+    "id": "policy_cancellation_nonrenewal_guide",
+    "filename": "reference/policy_cancellation_nonrenewal_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Policy Cancellation and Non-Renewal Reference"
+  },
+  {
+    "id": "claims_data_privacy_retention_guide",
+    "filename": "reference/claims_data_privacy_retention_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Claims Data Retention and Access Control Guide"
+  },
+  {
+    "id": "claim_intake_triage_guide",
+    "filename": "reference/claim_intake_triage_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Claim Intake and Triage Guide"
+  },
+  {
+    "id": "deductible_selection_reference",
+    "filename": "reference/deductible_selection_reference.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Deductible Selection and Application Reference"
+  },
+  {
+    "id": "rideshare_delivery_use_guide",
+    "filename": "reference/rideshare_delivery_use_guide.pdf",
+    "category": "reference",
+    "format": "pdf",
+    "title": "Rideshare and Delivery Use Coverage Guide"
+  },
+  {
     "id": "declarations_mmic_pap_100234",
     "filename": "declarations/declarations_mmic_pap_100234.docx",
     "category": "declarations",
@@ -340,6 +571,30 @@
     "format": "docx",
     "title": "Ohio State Amendatory Endorsement (END-OH-01)",
     "formCode": "END-OH-01"
+  },
+  {
+    "id": "endorsement_end_tel_01",
+    "filename": "endorsements/endorsement_end_tel_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "Telematics Program Enrollment Endorsement (END-TEL-01)",
+    "formCode": "END-TEL-01"
+  },
+  {
+    "id": "endorsement_end_umpd_01",
+    "filename": "endorsements/endorsement_end_umpd_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "Uninsured Motorist Property Damage Endorsement (END-UMPD-01)",
+    "formCode": "END-UMPD-01"
+  },
+  {
+    "id": "endorsement_end_nvr_01",
+    "filename": "endorsements/endorsement_end_nvr_01.docx",
+    "category": "endorsements",
+    "format": "docx",
+    "title": "New Vehicle Replacement Cost Endorsement (END-NVR-01)",
+    "formCode": "END-NVR-01"
   },
   {
     "id": "estimate_clm_2025_04417",
