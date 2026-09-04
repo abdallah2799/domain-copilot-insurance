@@ -45,11 +45,13 @@ Numbering matches the epics in the engineering plan; acceptance criteria are fil
 - Real personal data of any kind (hard non-negotiable per assessment brief) — corpus is synthetic/public only.
 - A third or later insurance product line beyond a single representative policy family used to build the corpus.
 - Anything beyond T6's core (OCR confidence handling + one generated document type) — broader document-type support is deferred, see `docs/SYSTEM-DESIGN.md` gap table.
+- Semantic/vector search over case data (declarations, claims) — deliberately out of scope; see ADR-0004. Case data is fetched by exact key (policy/claim number), never searched, and is not embedded into Qdrant.
 
 ## 7. Assumptions & risks
 
 - **Assumption**: "invitation email" variant statement (D2T6) is authoritative and does not need National-ID derivation math shown.
-- **Risk (named by the brief)**: wrong-policy-version retrieval — mitigated by mandatory version/date metadata filtering (see ADR on chunking/retrieval, once written).
+- **Assumption**: "the document corpus" that FR-2's "ask with citations" retrieves over means the knowledge corpus (policy wordings, exclusions, endorsement templates, reference material) specifically, not case data (declarations/claims) — see ADR-0004.
+- **Risk (named by the brief)**: wrong-policy-version retrieval — mitigated by mandatory version/date metadata filtering (see ADR-0004).
 - **Risk (named by the brief)**: arithmetic hallucination — mitigated structurally by `PayoutCalculationService` (see `docs/adr/`).
 - **Risk (schedule)**: only 6 calendar days remain versus the brief's 12-day assumption; MoSCoW floors (3 agents+orchestrator, 30-doc corpus, one retrieval enhancement, T6 core only) are treated as the actual target. Any further cut will be logged in the `SYSTEM-DESIGN.md` gap table, not silently dropped.
 

@@ -96,12 +96,12 @@ public sealed class DocumentRepositoryTests : IAsyncLifetime
         var repo = new DocumentRepository(_dbContext);
         var doc = NewDocument(sourceId: "will-fail", contentHash: "hash-c");
         doc.BeginProcessing();
-        doc.MarkFailed("OCR engine unavailable");
+        doc.MarkFailed("PDF extraction failed: corrupt file");
         await repo.AddAsync(doc);
         await repo.SaveChangesAsync();
 
         var failed = await repo.ListByStatusAsync(IngestionStatus.Failed);
 
-        Assert.Contains(failed, d => d.SourceId == "will-fail" && d.ErrorMessage == "OCR engine unavailable");
+        Assert.Contains(failed, d => d.SourceId == "will-fail" && d.ErrorMessage == "PDF extraction failed: corrupt file");
     }
 }

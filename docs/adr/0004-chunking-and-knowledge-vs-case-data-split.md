@@ -1,0 +1,57 @@
+# ADR-0004: Structure-aware chunking, and knowledge corpus vs. case data as separate pipelines
+
+**Status**: Accepted
+**Date**: 2026-09-04
+
+## Context
+
+FR-2 requires the chunking strategy to be "a deliberate, documented decision justified against your document structure." The corpus (`seed-data/corpus/`, see ADR-0002 for the vector store choice) actually contains two structurally different kinds of documents:
+
+1. **Knowledge corpus** — policy wordings, exclusions addenda, endorsement form templates, and reference material (guidelines, glossary, FAQ, training scenarios, regulatory reference). Static, never scanned, not tied to any individual policyholder or claim.
+2. **Case data** — declarations pages (per-policyholder limits/deductibles/endorsements) and claim documents (intake forms, incident reports, repair estimates, adjuster case notes). Some of these (claim intake forms, incident reports) are scanned and require OCR (T6).
+
+An early design draft put both through one ingestion pipeline (extract → clean → chunk → embed → index into Qdrant) with a single metadata schema carrying nullable `policyNumber`/`claimNumber`/OCR fields to accommodate case data alongside knowledge documents. That design was rejected during review (see `docs/AI-USAGE-LOG.md`, 2026-09-04) once it became clear those fields were structurally meaningless for the majority of documents, which is a sign the two document kinds don't belong in the same pipeline.
+
+## Decision
+
+**Two separate ingestion paths, not one pipeline with optional fields:**
+
+- **Knowledge corpus** → the full FR-1 pipeline: extract → clean → chunk → embed → index into Qdrant. This is what `ICompletionService`-backed "ask with citations" retrieves from. Modeled by the `Document` entity (Domain), tracked through `IngestionStatus` in MSSQL, chunked and embedded into Qdrant.
+- **Case data** (declarations, claims) → extract (OCR via Tesseract for the scanned ones — this is where T6 actually lives) → clean → **structured field extraction** into relational entities, fetched by exact key (policy/claim number) when a workflow run needs them. Never chunked, never embedded, never semantically searched — nothing ever needs to *find* a declarations page by similarity, only to *fetch* the one it already has the key for. (This entity and its extraction pipeline are a later epic; this ADR fixes the boundary, not the implementation.)
+
+Rationale for the split, not just "why not embed everything":
+- **No requirement drives it.** The brief frames the system around "ingests the document corpus, answers questions with verifiable citations" — the *document corpus*, i.e. the knowledge base. D2's workflow always operates on a claim it already has the number for. Embedding case data into the general-purpose search index would be capability nobody asked for, which this project's own standing rule (`CLAUDE.md`: "no speculative abstractions... for requirements not yet in `docs/BRD.md`") exists to prevent.
+- **Access control.** Case data carries named individuals, VINs, addresses, damage details — meaningfully more sensitive than policy text. A relational table gives an exact-key lookup an authorization check can wrap cleanly. A vector collection has no row-level security; every retrieval path would have to remember to apply the right payload filter, and a semantically-drifted query could otherwise surface a claim it had no business returning. That is precisely the "broken access control" / "sensitive disclosure" failure mode `docs/SECURITY.md` (once written) has to account for — this ADR avoids introducing it rather than mitigating it after the fact.
+- **OCR belongs to case data specifically, not to the pipeline in general.** None of the knowledge corpus is scanned. Giving `Document`/knowledge-corpus chunks an OCR-confidence field would mean the field is always null for 100% of what actually uses that pipeline.
+
+### Chunking technique — structure-aware, not fixed-size
+
+Chunk at the smallest meaningful structural unit (a numbered subsection like `5.4 Glass-Only Deductible Waiver`, one FAQ entry, one endorsement's full text), with fallback rules: merge an undersized chunk into its neighbor, split an oversized one (e.g. the adjudication guidelines' longer sections) at paragraph boundaries with light overlap. Target ~200–500 tokens/chunk.
+
+**Alternatives considered:**
+- **Fixed-size sliding window** — the common default. Rejected: our knowledge documents are legal/policy clauses, and a fixed window will straddle two unrelated clauses (end of 5.3 + start of 5.4), which directly breaks "citations traceable to the exact chunk" (FR-2) and would actively cause wrong-clause citations — exactly the failure mode D2's assigned risk warns about.
+- **Embedding-similarity-based semantic chunking** — decides boundaries from embedding drift rather than document structure. Rejected as unnecessary complexity: the knowledge corpus already has reliable, explicit structural markers (numbered sections, generated by us, so the numbering scheme is known), so a second embedding pass just to find boundaries buys nothing here.
+
+Extraction per format, since a generic text dump loses the structure chunking depends on: `DocumentFormat.OpenXml` for DOCX (endorsement templates), reading heading styles directly; `PdfPig` for PDF (policy wordings, exclusions, reference — all originating from our own DOCX→PDF pipeline, so heading conventions are known and detected via font-size/bold heuristics cross-checked against the numbering pattern, not a general-purpose layout parser).
+
+### Qdrant payload schema (knowledge corpus only)
+
+| Field | Why |
+|---|---|
+| `documentId` | Links back to the `Document` row (MSSQL) |
+| `chunkIndex` | Ordinal position — lets a citation expand to neighboring context if needed |
+| `sectionTitle` | The citation target itself — "structured, traceable to the exact chunk" (FR-2) |
+| `pageNumber` | Citation display, and page references for T6's generated output |
+| `category` | PolicyForm / Endorsement / Reference — filterable retrieval |
+| `formVersion` | Null except for PolicyForm. **The D2 risk mitigation** — retrieval must filter to the version in force on the date of loss, or it silently grounds an answer in the wrong policy |
+| `effectiveDate` | The adjudication guidelines say match by *date*, not just version string — this supports that lookup directly |
+| `contentHash` | Chunk-level idempotency, same pattern as `Document.ContentHash` |
+| `text` | The chunk content, so retrieval doesn't need a second round-trip to MSSQL |
+
+No `policyNumber`, `claimNumber`, `requiresOcr`, or OCR-confidence fields — those belong to case data, which isn't in this store at all.
+
+## Consequences
+
+Easier: the knowledge-corpus pipeline has a metadata schema where every field is meaningful for every document that uses it — no nullable fields that are structurally dead weight for most rows. Access control for case data can be a straightforward relational authorization check once auth exists (FR-8), rather than a payload-filter discipline every future retrieval call must remember to apply correctly.
+
+Harder: two pipelines instead of one means two things to build and maintain instead of one generic one. If a genuine requirement for cross-claim semantic search (e.g. SIU fraud-pattern detection) emerges later, it will need its own deliberately-scoped design — this ADR does not provide a ready-made path for it, by choice.
