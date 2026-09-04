@@ -1,3 +1,4 @@
+using DomainCopilot.Domain.Adjudication;
 using DomainCopilot.Domain.CaseData;
 using DomainCopilot.Domain.Documents;
 using DomainCopilot.Infrastructure.Persistence.Chunks;
@@ -14,6 +15,8 @@ public sealed class DomainCopilotDbContext(DbContextOptions<DomainCopilotDbConte
     public DbSet<PolicyDeclaration> PolicyDeclarations => Set<PolicyDeclaration>();
 
     public DbSet<ClaimHistoryRecord> ClaimHistoryRecords => Set<ClaimHistoryRecord>();
+
+    public DbSet<AdjudicationCase> AdjudicationCases => Set<AdjudicationCase>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

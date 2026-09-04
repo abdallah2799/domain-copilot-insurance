@@ -21,6 +21,7 @@ public class ToolDefinitionsMapToKernelFunctionsTests
         yield return [new GapCoverageToolExecutor()];
         yield return [new LookupDeclarationsToolExecutor(null!)];
         yield return [new LookupClaimHistoryToolExecutor(null!)];
+        yield return [new FinalizeAdjudicationDecisionToolExecutor(null!)];
     }
 
     [Theory]
