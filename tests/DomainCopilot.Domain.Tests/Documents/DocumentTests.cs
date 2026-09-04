@@ -66,11 +66,20 @@ public class DocumentTests
         doc.BeginProcessing();
         doc.MarkFailed("transient network error");
         doc.BeginProcessing();
-        doc.MarkCompleted();
+        doc.MarkCompleted(chunkCount: 12);
 
         Assert.Equal(IngestionStatus.Completed, doc.Status);
         Assert.Null(doc.ErrorMessage);
         Assert.NotNull(doc.IngestedAtUtc);
+        Assert.Equal(12, doc.ChunkCount);
+    }
+
+    [Fact]
+    public void MarkCompleted_WithZeroChunks_Throws()
+    {
+        var doc = CreateValid();
+        doc.BeginProcessing();
+        Assert.Throws<ArgumentOutOfRangeException>(() => doc.MarkCompleted(chunkCount: 0));
     }
 
     [Fact]
@@ -85,10 +94,10 @@ public class DocumentTests
     {
         var doc = CreateValid();
         doc.BeginProcessing();
-        doc.MarkFailed("OCR engine unavailable");
+        doc.MarkFailed("PDF extraction failed: corrupt file");
 
         Assert.Equal(IngestionStatus.Failed, doc.Status);
-        Assert.Equal("OCR engine unavailable", doc.ErrorMessage);
+        Assert.Equal("PDF extraction failed: corrupt file", doc.ErrorMessage);
         Assert.Null(doc.IngestedAtUtc);
     }
 

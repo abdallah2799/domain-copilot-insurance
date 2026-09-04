@@ -1,11 +1,17 @@
 namespace DomainCopilot.Domain.Documents;
 
 /// <summary>
-/// A source document tracked through ingestion (FR-1). <see cref="SourceId"/> is the stable
-/// natural key (matches the corpus manifest's document id) idempotent re-ingestion keys off of;
-/// <see cref="ContentHash"/> is what actually decides whether re-ingesting the same source is a
-/// no-op or a real reprocess — an unchanged file re-ingested twice must not duplicate chunks or
-/// silently reset status.
+/// A knowledge-corpus source document tracked through ingestion (FR-1) — policy wordings,
+/// exclusions, endorsement forms, and reference material that gets chunked, embedded, and
+/// semantically searched. Declarations and claims are deliberately not <see cref="Document"/>s:
+/// they're per-policyholder/per-claim case data, always fetched by exact key (policy/claim
+/// number), never searched, and carry no business justification for living in the vector store —
+/// see ADR-0004.
+///
+/// <see cref="SourceId"/> is the stable natural key (matches the corpus manifest's document id)
+/// idempotent re-ingestion keys off of; <see cref="ContentHash"/> is what actually decides whether
+/// re-ingesting the same source is a no-op or a real reprocess — an unchanged file re-ingested
+/// twice must not duplicate chunks or silently reset status.
 /// </summary>
 public sealed class Document
 {
@@ -17,13 +23,16 @@ public sealed class Document
     public string SourceFileName { get; private set; } = string.Empty;
     public string ContentHash { get; private set; } = string.Empty;
 
-    public string? PolicyNumber { get; private set; }
+    /// <summary>Null for anything but PolicyForm — endorsement forms and reference material aren't
+    /// versioned per policy edition.</summary>
     public string? FormVersion { get; private set; }
-    public string? ClaimNumber { get; private set; }
-    public bool RequiresOcr { get; private set; }
 
     public IngestionStatus Status { get; private set; }
     public string? ErrorMessage { get; private set; }
+
+    /// <summary>Set on <see cref="MarkCompleted"/> — how many chunks this document produced in
+    /// Qdrant, for FR-1 status reporting without a round-trip to the vector store.</summary>
+    public int ChunkCount { get; private set; }
 
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
@@ -41,10 +50,7 @@ public sealed class Document
         DocumentFormat format,
         string sourceFileName,
         string contentHash,
-        string? policyNumber = null,
-        string? formVersion = null,
-        string? claimNumber = null,
-        bool requiresOcr = false)
+        string? formVersion = null)
     {
         if (string.IsNullOrWhiteSpace(sourceId))
         {
@@ -66,10 +72,7 @@ public sealed class Document
             Format = format,
             SourceFileName = sourceFileName,
             ContentHash = contentHash,
-            PolicyNumber = policyNumber,
             FormVersion = formVersion,
-            ClaimNumber = claimNumber,
-            RequiresOcr = requiresOcr,
             Status = IngestionStatus.Pending,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
@@ -87,10 +90,16 @@ public sealed class Document
         UpdatedAtUtc = DateTimeOffset.UtcNow;
     }
 
-    public void MarkCompleted()
+    public void MarkCompleted(int chunkCount)
     {
+        if (chunkCount < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(chunkCount), "A completed ingestion must have produced at least one chunk.");
+        }
+
         Status = IngestionStatus.Completed;
         ErrorMessage = null;
+        ChunkCount = chunkCount;
         var now = DateTimeOffset.UtcNow;
         UpdatedAtUtc = now;
         IngestedAtUtc = now;

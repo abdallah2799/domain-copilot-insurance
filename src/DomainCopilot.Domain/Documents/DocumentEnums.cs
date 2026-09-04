@@ -1,19 +1,21 @@
 namespace DomainCopilot.Domain.Documents;
 
+/// <summary>
+/// Only the knowledge-corpus categories — policy text that gets searched. Declarations and claims
+/// are case data (per-policyholder/per-claim facts, always fetched by exact key, never searched)
+/// and are deliberately not <see cref="Document"/>s; see ADR-0004.
+/// </summary>
 public enum DocumentCategory
 {
     PolicyForm,
-    Declarations,
     Endorsement,
-    Claims,
     Reference
 }
 
 public enum DocumentFormat
 {
     Pdf,
-    Docx,
-    PdfScanned
+    Docx
 }
 
 /// <summary>
