@@ -7,6 +7,7 @@ using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Application.VectorStore;
 using DomainCopilot.Infrastructure.Ingestion;
 using DomainCopilot.Infrastructure.Persistence;
+using DomainCopilot.Infrastructure.Persistence.Adjudication;
 using DomainCopilot.Infrastructure.Persistence.CaseData;
 using DomainCopilot.Infrastructure.Providers;
 using DomainCopilot.Infrastructure.Retrieval;
@@ -30,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<IPolicyDeclarationRepository, PolicyDeclarationRepository>();
         services.AddScoped<IClaimHistoryRepository, ClaimHistoryRepository>();
         services.AddScoped<CaseDataLoadingService>();
+        services.AddScoped<IAdjudicationCaseRepository, AdjudicationCaseRepository>();
 
         var qdrantOptions = configuration.GetSection(QdrantOptions.SectionName).Get<QdrantOptions>() ?? new QdrantOptions();
         services.AddSingleton(qdrantOptions);
@@ -111,6 +113,11 @@ public static class DependencyInjection
         services.AddScoped<IToolExecutor>(sp => sp.GetRequiredService<LookupDeclarationsToolExecutor>());
         services.AddScoped<LookupClaimHistoryToolExecutor>();
         services.AddScoped<IToolExecutor>(sp => sp.GetRequiredService<LookupClaimHistoryToolExecutor>());
+
+        // The write/side-effecting tool (FR-4) — also scoped, for the same reason as the case-data
+        // lookup tools above.
+        services.AddScoped<FinalizeAdjudicationDecisionToolExecutor>();
+        services.AddScoped<IToolExecutor>(sp => sp.GetRequiredService<FinalizeAdjudicationDecisionToolExecutor>());
 
         return services;
     }
