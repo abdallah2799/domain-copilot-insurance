@@ -6,7 +6,7 @@ namespace DomainCopilot.Application.Adjudication;
 
 /// <summary>Exposes <see cref="TotalLossSettlementCalculator"/> (Total Loss Valuation Methodology,
 /// Section 3) as an agent-callable tool.</summary>
-public sealed class TotalLossSettlementToolExecutor : IPayoutToolExecutor
+public sealed class TotalLossSettlementToolExecutor : IToolExecutor
 {
     public ToolDefinition Definition { get; } = new(
         "calculate_total_loss_settlement",
@@ -24,7 +24,7 @@ public sealed class TotalLossSettlementToolExecutor : IPayoutToolExecutor
         }
         """);
 
-    public ToolExecutionResult Execute(string argumentsJson)
+    public Task<ToolExecutionResult> ExecuteAsync(string argumentsJson, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -37,19 +37,19 @@ public sealed class TotalLossSettlementToolExecutor : IPayoutToolExecutor
                 ToolArguments.RequireDecimal(root, "salesTaxAndFees"),
                 ToolArguments.OptionalDecimal(root, "salvageValueIfRetained") ?? 0m);
 
-            return ToolExecutionResult.Ok(JsonSerializer.Serialize(new { settlement }, JsonOptions));
+            return Task.FromResult(ToolExecutionResult.Ok(JsonSerializer.Serialize(new { settlement }, JsonOptions)));
         }
         catch (JsonException ex)
         {
-            return ToolExecutionResult.Failed($"Invalid arguments: {ex.Message}");
+            return Task.FromResult(ToolExecutionResult.Failed($"Invalid arguments: {ex.Message}"));
         }
         catch (ToolArgumentException ex)
         {
-            return ToolExecutionResult.Failed(ex.Message);
+            return Task.FromResult(ToolExecutionResult.Failed(ex.Message));
         }
         catch (ArgumentOutOfRangeException ex)
         {
-            return ToolExecutionResult.Failed(ex.Message);
+            return Task.FromResult(ToolExecutionResult.Failed(ex.Message));
         }
     }
 

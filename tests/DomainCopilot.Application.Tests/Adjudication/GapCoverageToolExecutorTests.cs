@@ -7,36 +7,36 @@ public class GapCoverageToolExecutorTests
     private readonly GapCoverageToolExecutor _executor = new();
 
     [Fact]
-    public void Execute_GapWithinLimit_ReturnsFullGap()
+    public async Task Execute_GapWithinLimit_ReturnsFullGap()
     {
-        var result = _executor.Execute("""{"loanOrLeaseBalance": 22000, "totalLossSettlement": 18000, "endorsementLimit": 10000}""");
+        var result = await _executor.ExecuteAsync("""{"loanOrLeaseBalance": 22000, "totalLossSettlement": 18000, "endorsementLimit": 10000}""");
 
         Assert.True(result.Success);
         Assert.Contains("4000", result.ResultJson);
     }
 
     [Fact]
-    public void Execute_GapExceedsLimit_CapsAtLimit()
+    public async Task Execute_GapExceedsLimit_CapsAtLimit()
     {
-        var result = _executor.Execute("""{"loanOrLeaseBalance": 30000, "totalLossSettlement": 18000, "endorsementLimit": 5000}""");
+        var result = await _executor.ExecuteAsync("""{"loanOrLeaseBalance": 30000, "totalLossSettlement": 18000, "endorsementLimit": 5000}""");
 
         Assert.True(result.Success);
         Assert.Contains("5000", result.ResultJson);
     }
 
     [Fact]
-    public void Execute_SettlementExceedsBalance_ReturnsZero()
+    public async Task Execute_SettlementExceedsBalance_ReturnsZero()
     {
-        var result = _executor.Execute("""{"loanOrLeaseBalance": 15000, "totalLossSettlement": 18000, "endorsementLimit": 10000}""");
+        var result = await _executor.ExecuteAsync("""{"loanOrLeaseBalance": 15000, "totalLossSettlement": 18000, "endorsementLimit": 10000}""");
 
         Assert.True(result.Success);
         Assert.Contains("0", result.ResultJson);
     }
 
     [Fact]
-    public void Execute_MissingRequiredArgument_Fails()
+    public async Task Execute_MissingRequiredArgument_Fails()
     {
-        var result = _executor.Execute("""{"loanOrLeaseBalance": 22000, "totalLossSettlement": 18000}""");
+        var result = await _executor.ExecuteAsync("""{"loanOrLeaseBalance": 22000, "totalLossSettlement": 18000}""");
 
         Assert.False(result.Success);
         Assert.Contains("endorsementLimit", result.ErrorMessage);
