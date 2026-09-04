@@ -108,11 +108,12 @@ public class DocumentTests
         var originalId = doc.Id;
         var originalSourceId = doc.SourceId;
 
-        doc.UpdateContent("Policy Wording — PAP-2025-STD", "new-hash", "PAP-2025-STD");
+        doc.UpdateContent("Policy Wording — PAP-2025-STD", "new-hash", "PAP-2025-STD", new DateOnly(2025, 6, 1));
 
         Assert.Equal(originalId, doc.Id);
         Assert.Equal(originalSourceId, doc.SourceId);
         Assert.Equal("new-hash", doc.ContentHash);
         Assert.Equal("PAP-2025-STD", doc.FormVersion);
+        Assert.Equal(new DateOnly(2025, 6, 1), doc.EffectiveDate);
     }
 }

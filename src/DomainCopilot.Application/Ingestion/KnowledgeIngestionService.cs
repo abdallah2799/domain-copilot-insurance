@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using DomainCopilot.Application.Documents;
 using DomainCopilot.Application.Providers;
+using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Application.VectorStore;
 using DomainCopilot.Domain.Documents;
 using Microsoft.Extensions.Logging;
@@ -11,13 +12,16 @@ namespace DomainCopilot.Application.Ingestion;
 /// <summary>
 /// The FR-1 pipeline for the knowledge corpus (ADR-0004): extract -> clean -> chunk -> embed ->
 /// index, idempotent on <see cref="Document.ContentHash"/>, with per-document status/failure
-/// reporting via the <see cref="Document"/> entity itself.
+/// reporting via the <see cref="Document"/> entity itself. Indexes into both retrieval legs
+/// (ADR-0005) — the dense vector store and the keyword search index — from the same chunk records,
+/// so the two legs can never drift out of sync with each other.
 /// </summary>
 public sealed class KnowledgeIngestionService(
     IDocumentRepository documentRepository,
     IDocumentExtractor extractor,
     IEmbeddingService embeddingService,
     IVectorStore vectorStore,
+    IKeywordSearchIndex keywordSearchIndex,
     KnowledgeChunker chunker,
     ILogger<KnowledgeIngestionService> logger)
 {
@@ -29,7 +33,7 @@ public sealed class KnowledgeIngestionService(
         Document document;
         if (existing is null)
         {
-            document = Document.Create(request.SourceId, request.Title, request.Category, request.Format, request.SourceFileName, contentHash, request.FormVersion);
+            document = Document.Create(request.SourceId, request.Title, request.Category, request.Format, request.SourceFileName, contentHash, request.FormVersion, request.EffectiveDate);
             await documentRepository.AddAsync(document, cancellationToken);
         }
         else if (!existing.NeedsReingestion(contentHash))
@@ -40,10 +44,11 @@ public sealed class KnowledgeIngestionService(
         else
         {
             document = existing;
-            document.UpdateContent(request.Title, contentHash, request.FormVersion);
+            document.UpdateContent(request.Title, contentHash, request.FormVersion, request.EffectiveDate);
             // Remove stale chunks before re-indexing — a shrinking document must not leave old
             // trailing chunks behind with no corresponding content anymore.
             await vectorStore.DeleteByDocumentIdAsync(document.Id, cancellationToken);
+            await keywordSearchIndex.DeleteByDocumentIdAsync(document.Id, cancellationToken);
         }
 
         document.BeginProcessing();
@@ -80,6 +85,7 @@ public sealed class KnowledgeIngestionService(
                 embedding)).ToList();
 
             await vectorStore.UpsertAsync(records, cancellationToken);
+            await keywordSearchIndex.IndexAsync(records, cancellationToken);
 
             document.MarkCompleted(chunks.Count);
             await documentRepository.SaveChangesAsync(cancellationToken);
