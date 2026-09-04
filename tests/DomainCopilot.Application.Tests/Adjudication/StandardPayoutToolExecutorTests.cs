@@ -7,54 +7,54 @@ public class StandardPayoutToolExecutorTests
     private readonly StandardPayoutToolExecutor _executor = new();
 
     [Fact]
-    public void Execute_ValidArguments_ReturnsComputedPayout()
+    public async Task Execute_ValidArguments_ReturnsComputedPayout()
     {
-        var result = _executor.Execute("""{"estimatedDamage": 3000, "applicableLimit": 50000, "applicableDeductible": 500}""");
+        var result = await _executor.ExecuteAsync("""{"estimatedDamage": 3000, "applicableLimit": 50000, "applicableDeductible": 500}""");
 
         Assert.True(result.Success);
         Assert.Contains("2500", result.ResultJson);
     }
 
     [Fact]
-    public void Execute_GlassWaiverTrue_IgnoresDeductible()
+    public async Task Execute_GlassWaiverTrue_IgnoresDeductible()
     {
-        var result = _executor.Execute("""{"estimatedDamage": 1200, "applicableLimit": 50000, "applicableDeductible": 500, "glassOnlyDeductibleWaiverApplies": true}""");
+        var result = await _executor.ExecuteAsync("""{"estimatedDamage": 1200, "applicableLimit": 50000, "applicableDeductible": 500, "glassOnlyDeductibleWaiverApplies": true}""");
 
         Assert.True(result.Success);
         Assert.Contains("1200", result.ResultJson);
     }
 
     [Fact]
-    public void Execute_MissingRequiredArgument_FailsRatherThanDefaultingToZero()
+    public async Task Execute_MissingRequiredArgument_FailsRatherThanDefaultingToZero()
     {
-        var result = _executor.Execute("""{"applicableLimit": 50000, "applicableDeductible": 500}""");
+        var result = await _executor.ExecuteAsync("""{"applicableLimit": 50000, "applicableDeductible": 500}""");
 
         Assert.False(result.Success);
         Assert.Contains("estimatedDamage", result.ErrorMessage);
     }
 
     [Fact]
-    public void Execute_MalformedJson_Fails()
+    public async Task Execute_MalformedJson_Fails()
     {
-        var result = _executor.Execute("{not valid json");
+        var result = await _executor.ExecuteAsync("{not valid json");
 
         Assert.False(result.Success);
         Assert.NotNull(result.ErrorMessage);
     }
 
     [Fact]
-    public void Execute_NegativeDamage_FailsRatherThanThrowing()
+    public async Task Execute_NegativeDamage_FailsRatherThanThrowing()
     {
-        var result = _executor.Execute("""{"estimatedDamage": -100, "applicableLimit": 50000, "applicableDeductible": 500}""");
+        var result = await _executor.ExecuteAsync("""{"estimatedDamage": -100, "applicableLimit": 50000, "applicableDeductible": 500}""");
 
         Assert.False(result.Success);
         Assert.NotNull(result.ErrorMessage);
     }
 
     [Fact]
-    public void Execute_WrongArgumentType_Fails()
+    public async Task Execute_WrongArgumentType_Fails()
     {
-        var result = _executor.Execute("""{"estimatedDamage": "not a number", "applicableLimit": 50000, "applicableDeductible": 500}""");
+        var result = await _executor.ExecuteAsync("""{"estimatedDamage": "not a number", "applicableLimit": 50000, "applicableDeductible": 500}""");
 
         Assert.False(result.Success);
     }

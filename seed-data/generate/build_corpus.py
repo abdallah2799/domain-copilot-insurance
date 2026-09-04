@@ -13,6 +13,7 @@ scratch (idempotent by construction — it's a build step, not a diff).
 import json
 import subprocess
 import sys
+from dataclasses import asdict
 from pathlib import Path
 
 from docx import Document
@@ -503,6 +504,27 @@ def build_scanned_claim_forms() -> None:
         )
 
 
+def write_case_data() -> None:
+    """Exports the corpus generator's own structured facts (facts.py) as case-data.json — the
+    source of truth for the Declarations/Claim-history lookups the adjudication agents need
+    (lookup_declarations, lookup_claim_history). Deliberately *not* re-derived by parsing the
+    generated declarations/claims prose documents: this data is already structured here, and
+    re-extracting it from rendered DOCX/PDF output would be strictly less reliable for the exact
+    same information, the same reason a real insurer's Declarations PDF is a rendering of policy
+    admin system data, not the other way around."""
+    policyholders = [asdict(p) for p in facts.POLICYHOLDERS]
+
+    claims = []
+    for c in facts.CLAIMS:
+        claim = asdict(c)
+        claim["policy_number"] = c.policy.policy_number
+        del claim["policy"]
+        claims.append(claim)
+
+    case_data = {"policyholders": policyholders, "claims": claims}
+    (CORPUS / "case-data.json").write_text(json.dumps(case_data, indent=2), encoding="utf-8")
+
+
 def main() -> None:
     reset_dirs()
     build_prose_docs()
@@ -511,6 +533,7 @@ def main() -> None:
     build_repair_estimates()
     build_case_notes()
     build_scanned_claim_forms()
+    write_case_data()
 
     manifest_path = CORPUS / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")

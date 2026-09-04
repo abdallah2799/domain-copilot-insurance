@@ -1,3 +1,4 @@
+using DomainCopilot.Domain.CaseData;
 using DomainCopilot.Domain.Documents;
 using DomainCopilot.Infrastructure.Persistence.Chunks;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,10 @@ public sealed class DomainCopilotDbContext(DbContextOptions<DomainCopilotDbConte
     public DbSet<Document> Documents => Set<Document>();
 
     public DbSet<ChunkRecord> Chunks => Set<ChunkRecord>();
+
+    public DbSet<PolicyDeclaration> PolicyDeclarations => Set<PolicyDeclaration>();
+
+    public DbSet<ClaimHistoryRecord> ClaimHistoryRecords => Set<ClaimHistoryRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

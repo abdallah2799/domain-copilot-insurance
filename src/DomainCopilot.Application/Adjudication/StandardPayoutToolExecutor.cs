@@ -6,7 +6,7 @@ namespace DomainCopilot.Application.Adjudication;
 
 /// <summary>Exposes <see cref="StandardPayoutCalculator"/> (Claims Adjudication Guidelines, Step 4)
 /// as an agent-callable tool.</summary>
-public sealed class StandardPayoutToolExecutor : IPayoutToolExecutor
+public sealed class StandardPayoutToolExecutor : IToolExecutor
 {
     public ToolDefinition Definition { get; } = new(
         "calculate_standard_payout",
@@ -24,7 +24,7 @@ public sealed class StandardPayoutToolExecutor : IPayoutToolExecutor
         }
         """);
 
-    public ToolExecutionResult Execute(string argumentsJson)
+    public Task<ToolExecutionResult> ExecuteAsync(string argumentsJson, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -37,19 +37,19 @@ public sealed class StandardPayoutToolExecutor : IPayoutToolExecutor
                 ToolArguments.RequireDecimal(root, "applicableDeductible"),
                 ToolArguments.OptionalBool(root, "glassOnlyDeductibleWaiverApplies") ?? false);
 
-            return ToolExecutionResult.Ok(JsonSerializer.Serialize(new { payout }, JsonOptions));
+            return Task.FromResult(ToolExecutionResult.Ok(JsonSerializer.Serialize(new { payout }, JsonOptions)));
         }
         catch (JsonException ex)
         {
-            return ToolExecutionResult.Failed($"Invalid arguments: {ex.Message}");
+            return Task.FromResult(ToolExecutionResult.Failed($"Invalid arguments: {ex.Message}"));
         }
         catch (ToolArgumentException ex)
         {
-            return ToolExecutionResult.Failed(ex.Message);
+            return Task.FromResult(ToolExecutionResult.Failed(ex.Message));
         }
         catch (ArgumentOutOfRangeException ex)
         {
-            return ToolExecutionResult.Failed(ex.Message);
+            return Task.FromResult(ToolExecutionResult.Failed(ex.Message));
         }
     }
 

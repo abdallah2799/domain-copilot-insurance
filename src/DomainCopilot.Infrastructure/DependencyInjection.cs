@@ -1,4 +1,5 @@
 using DomainCopilot.Application.Adjudication;
+using DomainCopilot.Application.CaseData;
 using DomainCopilot.Application.Documents;
 using DomainCopilot.Application.Ingestion;
 using DomainCopilot.Application.Providers;
@@ -6,6 +7,7 @@ using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Application.VectorStore;
 using DomainCopilot.Infrastructure.Ingestion;
 using DomainCopilot.Infrastructure.Persistence;
+using DomainCopilot.Infrastructure.Persistence.CaseData;
 using DomainCopilot.Infrastructure.Providers;
 using DomainCopilot.Infrastructure.Retrieval;
 using DomainCopilot.Infrastructure.VectorStore;
@@ -25,6 +27,9 @@ public static class DependencyInjection
         services.AddDbContext<DomainCopilotDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("Default")));
         services.AddScoped<IDocumentRepository, DocumentRepository>();
+        services.AddScoped<IPolicyDeclarationRepository, PolicyDeclarationRepository>();
+        services.AddScoped<IClaimHistoryRepository, ClaimHistoryRepository>();
+        services.AddScoped<CaseDataLoadingService>();
 
         var qdrantOptions = configuration.GetSection(QdrantOptions.SectionName).Get<QdrantOptions>() ?? new QdrantOptions();
         services.AddSingleton(qdrantOptions);
@@ -89,16 +94,23 @@ public static class DependencyInjection
         services.AddScoped<KnowledgeIngestionService>();
 
         // Deterministic payout tools (D2's non-negotiable control): each is registered both by its
-        // concrete type (for direct use) and as IPayoutToolExecutor (so an orchestrator can resolve
+        // concrete type (for direct use) and as IToolExecutor (so an orchestrator can resolve
         // the full set and dispatch by ToolDefinition.Name — see ADR-0006).
         services.AddSingleton<StandardPayoutToolExecutor>();
-        services.AddSingleton<IPayoutToolExecutor>(sp => sp.GetRequiredService<StandardPayoutToolExecutor>());
+        services.AddSingleton<IToolExecutor>(sp => sp.GetRequiredService<StandardPayoutToolExecutor>());
         services.AddSingleton<TotalLossDeterminationToolExecutor>();
-        services.AddSingleton<IPayoutToolExecutor>(sp => sp.GetRequiredService<TotalLossDeterminationToolExecutor>());
+        services.AddSingleton<IToolExecutor>(sp => sp.GetRequiredService<TotalLossDeterminationToolExecutor>());
         services.AddSingleton<TotalLossSettlementToolExecutor>();
-        services.AddSingleton<IPayoutToolExecutor>(sp => sp.GetRequiredService<TotalLossSettlementToolExecutor>());
+        services.AddSingleton<IToolExecutor>(sp => sp.GetRequiredService<TotalLossSettlementToolExecutor>());
         services.AddSingleton<GapCoverageToolExecutor>();
-        services.AddSingleton<IPayoutToolExecutor>(sp => sp.GetRequiredService<GapCoverageToolExecutor>());
+        services.AddSingleton<IToolExecutor>(sp => sp.GetRequiredService<GapCoverageToolExecutor>());
+
+        // Case-data lookup tools (Coverage Matcher / Anomaly Analyst) — scoped, not singleton,
+        // since they depend on the scoped DbContext through their repositories.
+        services.AddScoped<LookupDeclarationsToolExecutor>();
+        services.AddScoped<IToolExecutor>(sp => sp.GetRequiredService<LookupDeclarationsToolExecutor>());
+        services.AddScoped<LookupClaimHistoryToolExecutor>();
+        services.AddScoped<IToolExecutor>(sp => sp.GetRequiredService<LookupClaimHistoryToolExecutor>());
 
         return services;
     }

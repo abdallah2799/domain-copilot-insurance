@@ -1,4 +1,4 @@
-namespace DomainCopilot.Application.Adjudication;
+namespace DomainCopilot.Application.Providers;
 
 /// <summary>The outcome of executing one tool call. A malformed or domain-invalid argument set is
 /// <see cref="Failed"/>, not a thrown exception — an agent's tool call is untrusted input crossing

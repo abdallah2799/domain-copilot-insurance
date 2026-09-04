@@ -6,7 +6,7 @@ namespace DomainCopilot.Application.Adjudication;
 
 /// <summary>Exposes <see cref="GapCoverageCalculator"/> (Total Loss Valuation Methodology, Section
 /// 5) as an agent-callable tool.</summary>
-public sealed class GapCoverageToolExecutor : IPayoutToolExecutor
+public sealed class GapCoverageToolExecutor : IToolExecutor
 {
     public ToolDefinition Definition { get; } = new(
         "calculate_gap_coverage",
@@ -23,7 +23,7 @@ public sealed class GapCoverageToolExecutor : IPayoutToolExecutor
         }
         """);
 
-    public ToolExecutionResult Execute(string argumentsJson)
+    public Task<ToolExecutionResult> ExecuteAsync(string argumentsJson, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -35,19 +35,19 @@ public sealed class GapCoverageToolExecutor : IPayoutToolExecutor
                 ToolArguments.RequireDecimal(root, "totalLossSettlement"),
                 ToolArguments.RequireDecimal(root, "endorsementLimit"));
 
-            return ToolExecutionResult.Ok(JsonSerializer.Serialize(new { gapPayout }, JsonOptions));
+            return Task.FromResult(ToolExecutionResult.Ok(JsonSerializer.Serialize(new { gapPayout }, JsonOptions)));
         }
         catch (JsonException ex)
         {
-            return ToolExecutionResult.Failed($"Invalid arguments: {ex.Message}");
+            return Task.FromResult(ToolExecutionResult.Failed($"Invalid arguments: {ex.Message}"));
         }
         catch (ToolArgumentException ex)
         {
-            return ToolExecutionResult.Failed(ex.Message);
+            return Task.FromResult(ToolExecutionResult.Failed(ex.Message));
         }
         catch (ArgumentOutOfRangeException ex)
         {
-            return ToolExecutionResult.Failed(ex.Message);
+            return Task.FromResult(ToolExecutionResult.Failed(ex.Message));
         }
     }
 
