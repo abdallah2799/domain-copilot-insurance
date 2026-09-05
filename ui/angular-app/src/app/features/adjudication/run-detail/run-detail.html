@@ -9,6 +9,9 @@
     <header>
       <h2>Claim {{ r.claimNumber }}</h2>
       <span class="status-badge" [class]="'status-' + r.status">{{ r.status }}</span>
+      <a class="button-link" [href]="memoUrl(r.id)" target="_blank" rel="noopener"
+        >Download memo (PDF)</a
+      >
     </header>
 
     <dl class="summary">

@@ -18,6 +18,7 @@ public sealed class AdjudicationController(
     AdjudicationOrchestrator orchestrator,
     IAdjudicationCaseRepository caseRepository,
     FinalizeAdjudicationDecisionToolExecutor finalizeDecision,
+    AdjudicationMemoService memoService,
     IServiceScopeFactory scopeFactory,
     ILogger<AdjudicationController> logger) : ControllerBase
 {
@@ -122,6 +123,17 @@ public sealed class AdjudicationController(
     {
         var adjudicationCase = await caseRepository.FindByIdAsync(id, cancellationToken);
         return adjudicationCase is null ? NotFound() : Ok(adjudicationCase);
+    }
+
+    /// <summary>T6's document-out half (ADR-0011): the same grounded stage data any other view of
+    /// this run already shows, rendered as a PDF memo. Available at any point in a run, not only
+    /// once decided -- a stage that hasn't completed yet renders as "Not yet completed" rather
+    /// than the endpoint refusing to produce a memo at all.</summary>
+    [HttpGet("runs/{id:guid}/memo")]
+    public async Task<IActionResult> GetMemo(Guid id, CancellationToken cancellationToken)
+    {
+        var pdfBytes = await memoService.GenerateMemoAsync(id, cancellationToken);
+        return pdfBytes is null ? NotFound() : File(pdfBytes, "application/pdf", $"adjudication-memo-{id}.pdf");
     }
 
     /// <summary>FR-6's live per-agent progress feed: one SSE "update" event each time the case row

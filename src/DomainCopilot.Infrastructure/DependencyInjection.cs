@@ -6,6 +6,7 @@ using DomainCopilot.Application.Ocr;
 using DomainCopilot.Application.Providers;
 using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Application.VectorStore;
+using DomainCopilot.Infrastructure.Adjudication;
 using DomainCopilot.Infrastructure.Ingestion;
 using DomainCopilot.Infrastructure.Ocr;
 using DomainCopilot.Infrastructure.Persistence;
@@ -156,6 +157,11 @@ public static class DependencyInjection
         services.AddScoped<ExclusionAnalystAgent>();
         services.AddScoped<AdjudicationDrafterAgent>();
         services.AddScoped<AdjudicationOrchestrator>();
+
+        // T6's document-out half (ADR-0011): stateless, so singleton like the other pure-compute
+        // pieces in this file.
+        services.AddSingleton<IAdjudicationMemoGenerator, AdjudicationMemoGenerator>();
+        services.AddScoped<AdjudicationMemoService>();
 
         return services;
     }
