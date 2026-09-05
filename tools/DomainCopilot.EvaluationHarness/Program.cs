@@ -20,7 +20,13 @@ var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 var entries = JsonSerializer.Deserialize<List<GoldenEntry>>(await File.ReadAllTextAsync(goldenSetPath), jsonOptions)
     ?? throw new InvalidOperationException("Golden set deserialized to null.");
 
-using var http = new HttpClient { BaseAddress = new Uri(apiBaseUrl), Timeout = TimeSpan.FromMinutes(5) };
+// 20 minutes, not 5: OllamaCompletionService's own HttpClient.Timeout (server-side) is already 10
+// minutes (RequestTimeout in OllamaCompletionService.cs), and real Ollama completions against this
+// project's actual system prompts have been observed taking longer than that occasionally -- a
+// shorter client-side timeout here would just report a false "harness timeout" failure for a call
+// the server was still legitimately computing, masking the real (server-side) outcome. Matches the
+// same order of magnitude as AdjudicationOrchestrator.StepTimeout (20 minutes) for the same reason.
+using var http = new HttpClient { BaseAddress = new Uri(apiBaseUrl), Timeout = TimeSpan.FromMinutes(20) };
 
 // FR-8 (ADR-0012): every endpoint below requires a valid bearer token now -- log in once with the
 // seeded Analyst account (an Analyst can ingest/ask/start runs, which is everything this harness
