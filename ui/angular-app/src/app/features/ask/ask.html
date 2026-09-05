@@ -1,0 +1,57 @@
+<div class="ask">
+  <h2>Ask the knowledge corpus</h2>
+
+  <form (ngSubmit)="submit()">
+    <label>
+      Question
+      <textarea
+        rows="2"
+        placeholder="e.g. Does the glass-only deductible waiver apply to a collision claim?"
+        [ngModel]="question()"
+        (ngModelChange)="question.set($event)"
+        name="question"
+      ></textarea>
+    </label>
+    <button type="submit" [disabled]="loading() || !question().trim()">
+      {{ loading() ? 'Asking…' : 'Ask' }}
+    </button>
+  </form>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (result(); as r) {
+    @if (r.refused) {
+      <section class="refusal">
+        <p>{{ r.answer }}</p>
+      </section>
+    } @else {
+      <section class="answer">
+        <p>{{ r.answer }}</p>
+      </section>
+    }
+
+    @if (r.retrievedChunks.length > 0) {
+      <details class="chunks">
+        <summary>
+          {{
+            r.refused
+              ? 'Closest available material (not strong enough to answer from)'
+              : 'Retrieved passages used'
+          }}
+          ({{ r.retrievedChunks.length }})
+        </summary>
+        @for (chunk of r.retrievedChunks; track chunk.documentId + chunk.sectionTitle) {
+          <div class="chunk">
+            <strong>{{ chunk.documentTitle }} — {{ chunk.sectionTitle }}</strong>
+            @if (chunk.pageNumber) {
+              <span> (p.{{ chunk.pageNumber }})</span>
+            }
+            <p>{{ chunk.text }}</p>
+          </div>
+        }
+      </details>
+    }
+  }
+</div>

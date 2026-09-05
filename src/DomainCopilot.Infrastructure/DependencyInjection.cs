@@ -92,6 +92,7 @@ public static class DependencyInjection
         services.AddSingleton<Bm25Scorer>();
         services.AddScoped<IKeywordSearchIndex, EfCoreKeywordSearchIndex>();
         services.AddScoped<HybridRetrievalService>();
+        services.AddScoped<AskService>();
 
         services.AddScoped<KnowledgeIngestionService>();
 
