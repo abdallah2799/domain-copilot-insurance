@@ -2,13 +2,16 @@ using DomainCopilot.Application.Adjudication;
 using DomainCopilot.Application.CaseData;
 using DomainCopilot.Application.Documents;
 using DomainCopilot.Application.Ingestion;
+using DomainCopilot.Application.Ocr;
 using DomainCopilot.Application.Providers;
 using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Application.VectorStore;
 using DomainCopilot.Infrastructure.Ingestion;
+using DomainCopilot.Infrastructure.Ocr;
 using DomainCopilot.Infrastructure.Persistence;
 using DomainCopilot.Infrastructure.Persistence.Adjudication;
 using DomainCopilot.Infrastructure.Persistence.CaseData;
+using DomainCopilot.Infrastructure.Persistence.Ocr;
 using DomainCopilot.Infrastructure.Providers;
 using DomainCopilot.Infrastructure.Retrieval;
 using DomainCopilot.Infrastructure.VectorStore;
@@ -95,6 +98,15 @@ public static class DependencyInjection
         services.AddScoped<AskService>();
 
         services.AddScoped<KnowledgeIngestionService>();
+
+        // T6's OCR pipeline: separate from knowledge-corpus ingestion above (ADR-0004 -- claim
+        // paperwork is case data, never routed through that pipeline or searched).
+        var ocrOptions = configuration.GetSection(OcrOptions.SectionName).Get<OcrOptions>() ?? new OcrOptions();
+        services.AddSingleton(ocrOptions);
+        services.AddSingleton<IPdfRasterizer, PdftoppmPdfRasterizer>();
+        services.AddSingleton<IOcrEngine, TesseractOcrEngine>();
+        services.AddScoped<IScannedDocumentRepository, ScannedDocumentRepository>();
+        services.AddScoped<OcrIngestionService>();
 
         // Deterministic payout tools (D2's non-negotiable control): each is registered both by its
         // concrete type (for direct use) and as IToolExecutor (so an orchestrator can resolve

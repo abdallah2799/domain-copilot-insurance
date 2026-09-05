@@ -1,6 +1,7 @@
 using DomainCopilot.Domain.Adjudication;
 using DomainCopilot.Domain.CaseData;
 using DomainCopilot.Domain.Documents;
+using DomainCopilot.Domain.Ocr;
 using DomainCopilot.Infrastructure.Persistence.Chunks;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,8 @@ public sealed class DomainCopilotDbContext(DbContextOptions<DomainCopilotDbConte
     public DbSet<ClaimHistoryRecord> ClaimHistoryRecords => Set<ClaimHistoryRecord>();
 
     public DbSet<AdjudicationCase> AdjudicationCases => Set<AdjudicationCase>();
+
+    public DbSet<ScannedDocument> ScannedDocuments => Set<ScannedDocument>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
