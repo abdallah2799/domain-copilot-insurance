@@ -1,0 +1,60 @@
+<div class="observability">
+  <h2>Observability: token usage &amp; cost (FR-9)</h2>
+  <p>
+    Per-completion-call token usage recorded from every real agent step and ask/ask-stream call --
+    a fuller trace (correlation id, per-stage spans) is visible in the self-hosted OpenTelemetry
+    viewer at <code>http://localhost:18888</code> once <code>docker compose up otel-collector</code>
+    is running. Estimated cost is $0 for any local Ollama or free-tier OpenRouter call by design
+    (see ModelPricingOptions) -- only a real OpenAI fallback call would ever price above zero.
+  </p>
+
+  <button type="button" (click)="refresh()" [disabled]="loading()">Refresh</button>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else if (loading()) {
+    <p>Loading…</p>
+  } @else if (report(); as r) {
+    <dl class="totals">
+      <dt>Total prompt tokens</dt>
+      <dd>{{ r.totalPromptTokens | number }}</dd>
+      <dt>Total completion tokens</dt>
+      <dd>{{ r.totalCompletionTokens | number }}</dd>
+      <dt>Total estimated cost</dt>
+      <dd>${{ r.totalEstimatedCostUsd | number: '1.2-6' }}</dd>
+    </dl>
+
+    @if (r.recentEntries.length === 0) {
+      <p class="pending">No completion calls recorded yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Correlation ID</th>
+            <th>Agent</th>
+            <th>Provider</th>
+            <th>Model</th>
+            <th>Prompt</th>
+            <th>Completion</th>
+            <th>Est. cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of r.recentEntries; track entry.correlationId + entry.timestampUtc) {
+            <tr>
+              <td>{{ entry.timestampUtc | date: 'medium' }}</td>
+              <td>{{ entry.correlationId }}</td>
+              <td>{{ entry.agentName }}</td>
+              <td>{{ entry.providerName }}</td>
+              <td>{{ entry.modelName }}</td>
+              <td>{{ entry.promptTokens | number }}</td>
+              <td>{{ entry.completionTokens | number }}</td>
+              <td>${{ entry.estimatedCostUsd | number: '1.2-6' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+</div>

@@ -11,8 +11,13 @@ namespace DomainCopilot.Application.Tests.Retrieval;
 internal sealed class FakeStreamingCompletionService : ICompletionService
 {
     private readonly IReadOnlyList<string> _deltas;
+    private readonly TokenUsage? _finalUsage;
 
-    public FakeStreamingCompletionService(IReadOnlyList<string> deltas) => _deltas = deltas;
+    public FakeStreamingCompletionService(IReadOnlyList<string> deltas, TokenUsage? finalUsage = null)
+    {
+        _deltas = deltas;
+        _finalUsage = finalUsage;
+    }
 
     public string ProviderName => "fake-streaming";
 
@@ -31,6 +36,11 @@ internal sealed class FakeStreamingCompletionService : ICompletionService
             await Task.Yield();
             DeltasYielded++;
             yield return new CompletionChunk(delta, IsFinal: false);
+        }
+
+        if (_finalUsage is { } usage)
+        {
+            yield return new CompletionChunk(DeltaContent: null, IsFinal: true, Usage: usage);
         }
     }
 }

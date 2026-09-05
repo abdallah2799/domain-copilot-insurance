@@ -1,6 +1,7 @@
 using DomainCopilot.Application.Providers;
 using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Application.Tests.Adjudication;
+using DomainCopilot.Application.Tests.Observability;
 using DomainCopilot.Domain.Documents;
 
 namespace DomainCopilot.Application.Tests.Retrieval;
@@ -17,25 +18,27 @@ public class AskServiceTests
         return document;
     }
 
-    private static (AskService Service, FakeDocumentRepository Documents, FakeVectorStore VectorStore, FakeKeywordSearchIndex KeywordIndex, SequencedFakeCompletionService Completion) BuildService()
+    private static (AskService Service, FakeDocumentRepository Documents, FakeVectorStore VectorStore, FakeKeywordSearchIndex KeywordIndex, SequencedFakeCompletionService Completion, FakeTokenUsageRecorder TokenUsage) BuildService()
     {
         var documents = new FakeDocumentRepository();
         var vectorStore = new FakeVectorStore();
         var keywordIndex = new FakeKeywordSearchIndex();
         var retrieval = new HybridRetrievalService(documents, new FakeEmbeddingService(), vectorStore, keywordIndex);
         var completion = new SequencedFakeCompletionService();
-        var service = new AskService(retrieval, completion, new FakePromptRepository());
-        return (service, documents, vectorStore, keywordIndex, completion);
+        var tokenUsage = new FakeTokenUsageRecorder();
+        var service = new AskService(retrieval, completion, new FakePromptRepository(), tokenUsage);
+        return (service, documents, vectorStore, keywordIndex, completion, tokenUsage);
     }
 
-    private static (AskService Service, FakeDocumentRepository Documents, FakeVectorStore VectorStore, FakeKeywordSearchIndex KeywordIndex) BuildStreamingService(FakeStreamingCompletionService completion)
+    private static (AskService Service, FakeDocumentRepository Documents, FakeVectorStore VectorStore, FakeKeywordSearchIndex KeywordIndex, FakeTokenUsageRecorder TokenUsage) BuildStreamingService(FakeStreamingCompletionService completion)
     {
         var documents = new FakeDocumentRepository();
         var vectorStore = new FakeVectorStore();
         var keywordIndex = new FakeKeywordSearchIndex();
         var retrieval = new HybridRetrievalService(documents, new FakeEmbeddingService(), vectorStore, keywordIndex);
-        var service = new AskService(retrieval, completion, new FakePromptRepository());
-        return (service, documents, vectorStore, keywordIndex);
+        var tokenUsage = new FakeTokenUsageRecorder();
+        var service = new AskService(retrieval, completion, new FakePromptRepository(), tokenUsage);
+        return (service, documents, vectorStore, keywordIndex, tokenUsage);
     }
 
     private static (Document Document, ScoredChunk Chunk) SeedOneChunk(FakeDocumentRepository documents, FakeVectorStore vectorStore, FakeKeywordSearchIndex keywordIndex, string title = "Some Reference")
@@ -51,7 +54,7 @@ public class AskServiceTests
     [Fact]
     public async Task AskAsync_NoDenseMatch_RefusesWithoutCallingCompletion()
     {
-        var (service, _, _, _, completion) = BuildService();
+        var (service, _, _, _, completion, _) = BuildService();
         // No search results seeded on either leg -- HybridRetrievalService's own refusal path
         // (empty Chunks) fires without any dense score to evaluate.
 
@@ -65,7 +68,7 @@ public class AskServiceTests
     [Fact]
     public async Task AskAsync_SufficientEvidence_ParsesGroundedAnswerAndCitations()
     {
-        var (service, documents, vectorStore, keywordIndex, completion) = BuildService();
+        var (service, documents, vectorStore, keywordIndex, completion, _) = BuildService();
         var document = CompletedDocument("Policy Wording PAP-2025-STD");
         documents.Seed(document);
 
@@ -87,9 +90,36 @@ public class AskServiceTests
     }
 
     [Fact]
+    public async Task AskAsync_SufficientEvidence_RecordsRealTokenUsage()
+    {
+        var (service, documents, vectorStore, keywordIndex, completion, tokenUsage) = BuildService();
+        SeedOneChunk(documents, vectorStore, keywordIndex);
+        completion.Enqueue(() => new CompletionResult("""{"answer":"An answer.","citations":[]}""", [], new TokenUsage(200, 40), "fake-provider", "fake-model"));
+
+        await service.AskAsync(new AskRequest("some question"));
+
+        var recorded = Assert.Single(tokenUsage.RecordedEntries);
+        Assert.Equal("Ask", recorded.AgentName);
+        Assert.Equal("fake-provider", recorded.ProviderName);
+        Assert.Equal("fake-model", recorded.ModelName);
+        Assert.Equal(200, recorded.PromptTokens);
+        Assert.Equal(40, recorded.CompletionTokens);
+    }
+
+    [Fact]
+    public async Task AskAsync_Refused_RecordsNoTokenUsage_NoCompletionCallWasMade()
+    {
+        var (service, _, _, _, _, tokenUsage) = BuildService();
+
+        await service.AskAsync(new AskRequest("out of corpus question"));
+
+        Assert.Empty(tokenUsage.RecordedEntries);
+    }
+
+    [Fact]
     public async Task AskAsync_AnswerWrappedInCodeFence_StillParses()
     {
-        var (service, documents, vectorStore, keywordIndex, completion) = BuildService();
+        var (service, documents, vectorStore, keywordIndex, completion, _) = BuildService();
         var document = CompletedDocument("Some Reference");
         documents.Seed(document);
         var chunk = new ScoredChunk(document.Id, 0, "Intro", null, DocumentCategory.Reference, null, null, "Some grounded text.", Score: 0.9);
@@ -107,7 +137,7 @@ public class AskServiceTests
     [Fact]
     public async Task AskAsync_NonJsonCompletion_FallsBackToRawContentRatherThanThrowing()
     {
-        var (service, documents, vectorStore, keywordIndex, completion) = BuildService();
+        var (service, documents, vectorStore, keywordIndex, completion, _) = BuildService();
         var document = CompletedDocument("Some Reference");
         documents.Seed(document);
         var chunk = new ScoredChunk(document.Id, 0, "Intro", null, DocumentCategory.Reference, null, null, "Some grounded text.", Score: 0.9);
@@ -127,7 +157,7 @@ public class AskServiceTests
     public async Task AskStreamAsync_NoDenseMatch_YieldsOnlyRefusedEvent()
     {
         var completion = new FakeStreamingCompletionService(["should never be reached"]);
-        var (service, _, _, _) = BuildStreamingService(completion);
+        var (service, _, _, _, _) = BuildStreamingService(completion);
 
         var events = new List<AskStreamEvent>();
         await foreach (var evt in service.AskStreamAsync(new AskRequest("out of corpus question")))
@@ -144,7 +174,7 @@ public class AskServiceTests
     public async Task AskStreamAsync_SufficientEvidence_YieldsDeltasThenDoneWithAllRetrievedCitations()
     {
         var completion = new FakeStreamingCompletionService(["No, ", "it only ", "applies to Comprehensive."]);
-        var (service, documents, vectorStore, keywordIndex) = BuildStreamingService(completion);
+        var (service, documents, vectorStore, keywordIndex, _) = BuildStreamingService(completion);
         SeedOneChunk(documents, vectorStore, keywordIndex, "Policy Wording PAP-2025-STD");
 
         var events = new List<AskStreamEvent>();
@@ -164,10 +194,28 @@ public class AskServiceTests
     }
 
     [Fact]
+    public async Task AskStreamAsync_SufficientEvidence_RecordsRealTokenUsageFromTheFinalChunk()
+    {
+        var completion = new FakeStreamingCompletionService(["No, ", "it does not."], finalUsage: new TokenUsage(180, 25));
+        var (service, documents, vectorStore, keywordIndex, tokenUsage) = BuildStreamingService(completion);
+        SeedOneChunk(documents, vectorStore, keywordIndex);
+
+        await foreach (var _ in service.AskStreamAsync(new AskRequest("some question")))
+        {
+        }
+
+        var recorded = Assert.Single(tokenUsage.RecordedEntries);
+        Assert.Equal("AskStream", recorded.AgentName);
+        Assert.Equal("fake-streaming", recorded.ProviderName);
+        Assert.Equal(180, recorded.PromptTokens);
+        Assert.Equal(25, recorded.CompletionTokens);
+    }
+
+    [Fact]
     public async Task AskStreamAsync_CancelledMidStream_StopsEnumeratingRatherThanYieldingAllDeltas()
     {
         var completion = new FakeStreamingCompletionService(["one", "two", "three", "four", "five"]);
-        var (service, documents, vectorStore, keywordIndex) = BuildStreamingService(completion);
+        var (service, documents, vectorStore, keywordIndex, _) = BuildStreamingService(completion);
         SeedOneChunk(documents, vectorStore, keywordIndex);
 
         using var cts = new CancellationTokenSource();
