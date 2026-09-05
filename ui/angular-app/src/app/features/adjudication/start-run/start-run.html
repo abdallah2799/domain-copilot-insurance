@@ -1,0 +1,62 @@
+<div class="start-run">
+  <h2>Start a new adjudication run</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Claim number
+      <input type="text" formControlName="claimNumber" placeholder="CLM-2025-04417" />
+    </label>
+
+    <label>
+      Policy number
+      <input type="text" formControlName="policyNumber" placeholder="MMIC-PAP-100234" />
+    </label>
+
+    <label>
+      Date of loss
+      <input type="date" formControlName="dateOfLoss" />
+    </label>
+
+    <label>
+      Loss type
+      <select formControlName="lossType">
+        <option value="Collision">Collision</option>
+        <option value="Comprehensive">Comprehensive</option>
+        <option value="Liability">Liability</option>
+        <option value="UmUim">UM/UIM</option>
+      </select>
+    </label>
+
+    <label>
+      Narrative
+      <textarea
+        formControlName="narrative"
+        rows="4"
+        placeholder="What happened, in the claimant's/adjuster's own words…"
+      ></textarea>
+    </label>
+
+    <label>
+      Police report text (optional)
+      <textarea formControlName="policeReportText" rows="3"></textarea>
+    </label>
+
+    <label>
+      Estimated damage ($)
+      <input type="number" formControlName="estimatedDamage" min="0" step="0.01" />
+    </label>
+
+    <label>
+      Approximate vehicle value ($)
+      <input type="number" formControlName="approximateVehicleValue" min="0.01" step="0.01" />
+    </label>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button type="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Running the full pipeline… this can take a few minutes' : 'Start run' }}
+    </button>
+  </form>
+</div>

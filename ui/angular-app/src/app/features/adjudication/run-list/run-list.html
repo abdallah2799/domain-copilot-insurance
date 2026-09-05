@@ -1,0 +1,40 @@
+<div class="run-list">
+  <header>
+    <h2>Adjudication runs</h2>
+    <div class="actions">
+      <button type="button" (click)="refresh()">Refresh</button>
+      <a routerLink="/runs/new" class="button-link">Start new run</a>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else if (runs().length === 0) {
+    <p>No runs yet.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Claim</th>
+          <th>Policy</th>
+          <th>Date of loss</th>
+          <th>Status</th>
+          <th>Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (run of runs(); track run.id) {
+          <tr [class]="'status-' + run.status" [routerLink]="['/runs', run.id]">
+            <td>{{ run.claimNumber }}</td>
+            <td>{{ run.policyNumber }}</td>
+            <td>{{ run.dateOfLoss }}</td>
+            <td>{{ run.status }}</td>
+            <td>{{ run.updatedAtUtc | date: 'short' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
