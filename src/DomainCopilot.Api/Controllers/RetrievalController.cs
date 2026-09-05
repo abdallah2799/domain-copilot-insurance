@@ -12,8 +12,19 @@ namespace DomainCopilot.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public sealed class RetrievalController(HybridRetrievalService retrievalService) : ControllerBase
+public sealed class RetrievalController(HybridRetrievalService retrievalService, AskService askService) : ControllerBase
 {
+    [HttpPost("ask")]
+    public async Task<ActionResult<AskResult>> Ask([FromBody] AskRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Question))
+        {
+            return BadRequest("question is required.");
+        }
+
+        return Ok(await askService.AskAsync(request, cancellationToken));
+    }
+
     [HttpGet("search")]
     public async Task<ActionResult<RetrievalResult>> Search(
         [FromQuery] string query,

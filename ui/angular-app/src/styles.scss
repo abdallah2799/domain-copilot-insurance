@@ -142,3 +142,37 @@ section.failure {
   gap: 1rem;
   align-items: flex-start;
 }
+
+.ask {
+  section.refusal,
+  section.answer {
+    border: 1px solid #ddd;
+    border-radius: 0.35rem;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+  }
+
+  section.refusal {
+    background: #fff8f0;
+    border-color: #f0c36d;
+  }
+
+  section.answer {
+    background: #eef4ff;
+    border-color: #a8c4f0;
+  }
+
+  details.chunks {
+    margin-top: 1rem;
+
+    .chunk {
+      border-top: 1px solid #eee;
+      padding: 0.5rem 0;
+
+      p {
+        margin: 0.25rem 0 0;
+        color: #444;
+      }
+    }
+  }
+}
