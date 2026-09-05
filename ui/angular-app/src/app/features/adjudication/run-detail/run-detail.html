@@ -1,0 +1,219 @@
+<div class="run-detail">
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else if (!run()) {
+    <p>Loading…</p>
+  } @else {
+    @let r = run()!;
+
+    <header>
+      <h2>Claim {{ r.claimNumber }}</h2>
+      <span class="status-badge" [class]="'status-' + r.status">{{ r.status }}</span>
+    </header>
+
+    <dl class="summary">
+      <dt>Policy</dt>
+      <dd>{{ r.policyNumber }}</dd>
+      <dt>Date of loss</dt>
+      <dd>{{ r.dateOfLoss }}</dd>
+      <dt>Created</dt>
+      <dd>{{ r.createdAtUtc }}</dd>
+      <dt>Updated</dt>
+      <dd>{{ r.updatedAtUtc }}</dd>
+    </dl>
+
+    @if (r.failureReason) {
+      <section class="failure">
+        <h3>Failure / degraded fallback</h3>
+        <p>{{ r.failureReason }}</p>
+      </section>
+    }
+
+    <section class="stage">
+      <h3>1. Coverage Matcher</h3>
+      @if (coverageMatch(); as cm) {
+        <dl>
+          <dt>Form version</dt>
+          <dd>{{ cm.formVersion }} (effective {{ cm.formVersionEffectiveDate }})</dd>
+          <dt>Coverage part</dt>
+          <dd>
+            {{ cm.coveragePart }} — {{ cm.coveragePartSelected ? 'selected' : 'not selected' }}
+          </dd>
+          <dt>Limit / deductible</dt>
+          <dd>{{ cm.applicableLimit ?? '—' }} / {{ cm.applicableDeductible ?? '—' }}</dd>
+          <dt>Glass-only waiver applies</dt>
+          <dd>{{ cm.glassOnlyDeductibleWaiverApplies }}</dd>
+          <dt>Endorsements held</dt>
+          <dd>{{ cm.endorsementsHeld.join(', ') || 'none' }}</dd>
+          <dt>Notes</dt>
+          <dd>{{ cm.notes ?? '—' }}</dd>
+          <dt>Citations</dt>
+          <dd>
+            <ul>
+              @for (c of cm.citations; track c) {
+                <li>{{ c }}</li>
+              }
+            </ul>
+          </dd>
+        </dl>
+      } @else {
+        <p class="pending">Not yet completed.</p>
+      }
+    </section>
+
+    <section class="stage">
+      <h3>2. Anomaly Analyst</h3>
+      @if (anomalyFindings(); as af) {
+        <dl>
+          <dt>Damage/value &gt; 60%</dt>
+          <dd>{{ af.damageToValueRatioExceeds60Percent }}</dd>
+          <dt>Duplicate claims (90d)</dt>
+          <dd>
+            {{ af.duplicateClaimsWithin90Days }} —
+            {{ af.duplicateClaimNumbers.join(', ') || 'none' }}
+          </dd>
+          <dt>Loss before effective date</dt>
+          <dd>{{ af.dateOfLossBeforePolicyEffectiveDate }}</dd>
+          <dt>Narrative/police mismatch</dt>
+          <dd>{{ af.narrativePoliceReportMismatch }}</dd>
+          <dt>Gig-economy use mentioned</dt>
+          <dd>{{ af.gigEconomyUseMentioned }}</dd>
+          <dt>Gig-economy endorsement held</dt>
+          <dd>{{ af.gigEconomyEndorsementPresent }}</dd>
+          <dt>Summary</dt>
+          <dd>{{ af.summary }}</dd>
+          <dt>Citations</dt>
+          <dd>
+            <ul>
+              @for (c of af.citations; track c) {
+                <li>{{ c }}</li>
+              }
+            </ul>
+          </dd>
+        </dl>
+      } @else {
+        <p class="pending">Not yet completed.</p>
+      }
+    </section>
+
+    <section class="stage">
+      <h3>3. Exclusion Analyst</h3>
+      @if (exclusionAnalysis(); as ex) {
+        <dl>
+          <dt>Exclusions apply</dt>
+          <dd>{{ ex.exclusionsApply }}</dd>
+          <dt>Applicable exclusions</dt>
+          <dd>{{ ex.applicableExclusions.join(', ') || 'none' }}</dd>
+          <dt>Insufficient information</dt>
+          <dd>{{ ex.insufficientInformation }}</dd>
+          <dt>Reasoning</dt>
+          <dd>{{ ex.reasoning }}</dd>
+          <dt>Citations</dt>
+          <dd>
+            <ul>
+              @for (c of ex.citations; track c) {
+                <li>{{ c }}</li>
+              }
+            </ul>
+          </dd>
+        </dl>
+      } @else {
+        <p class="pending">Not yet completed.</p>
+      }
+    </section>
+
+    <section class="stage">
+      <h3>4. Adjudication Drafter</h3>
+      @if (recommendation(); as rec) {
+        <dl>
+          <dt>Recommendation</dt>
+          <dd>{{ rec.recommendationType }}</dd>
+          <dt>Payout amount</dt>
+          <dd>
+            {{ rec.payoutAmount ?? '—' }}
+            @if (rec.payoutToolUsed) {
+              (via {{ rec.payoutToolUsed }})
+            }
+          </dd>
+          <dt>Summary</dt>
+          <dd>{{ rec.summary }}</dd>
+          <dt>Citations</dt>
+          <dd>
+            <ul>
+              @for (c of rec.citations; track c) {
+                <li>{{ c }}</li>
+              }
+            </ul>
+          </dd>
+        </dl>
+      } @else {
+        <p class="pending">Not yet completed.</p>
+      }
+    </section>
+
+    @if (isAwaitingApproval()) {
+      <section class="approval-gate">
+        <h3>Approval gate</h3>
+
+        <label>
+          Acting as
+          <input type="text" [ngModel]="actorName()" (ngModelChange)="actorName.set($event)" />
+        </label>
+
+        @if (actionError()) {
+          <p class="error">{{ actionError() }}</p>
+        }
+
+        <div class="approval-actions">
+          <button type="button" [disabled]="actionInProgress()" (click)="approve()">Approve</button>
+
+          <details>
+            <summary>Reject</summary>
+            <textarea
+              rows="2"
+              placeholder="Reason for rejection"
+              [ngModel]="rejectComments()"
+              (ngModelChange)="rejectComments.set($event)"
+            ></textarea>
+            <button type="button" [disabled]="actionInProgress()" (click)="reject()">
+              Confirm reject
+            </button>
+          </details>
+
+          <details>
+            <summary>Edit and approve</summary>
+            <textarea
+              rows="6"
+              placeholder="Edited recommendation JSON"
+              [ngModel]="editedRecommendationJson()"
+              (ngModelChange)="editedRecommendationJson.set($event)"
+            ></textarea>
+            <textarea
+              rows="2"
+              placeholder="Comment explaining the edit"
+              [ngModel]="editComments()"
+              (ngModelChange)="editComments.set($event)"
+            ></textarea>
+            <button type="button" [disabled]="actionInProgress()" (click)="editAndApprove()">
+              Confirm edit and approve
+            </button>
+          </details>
+        </div>
+      </section>
+    }
+
+    @if (r.approvedBy) {
+      <section class="decision">
+        <h3>Decision</h3>
+        <dl>
+          <dt>By</dt>
+          <dd>{{ r.approvedBy }}</dd>
+          <dt>At</dt>
+          <dd>{{ r.approvedAtUtc }}</dd>
+          <dt>Comments</dt>
+          <dd>{{ r.adjusterComments ?? '—' }}</dd>
+        </dl>
+      </section>
+    }
+  }
+</div>

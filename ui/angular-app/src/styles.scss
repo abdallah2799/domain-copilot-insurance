@@ -1,1 +1,135 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global reset + shared table/form/status-badge styling — deliberately minimal (the brief
+   explicitly deprioritizes visual polish); this exists only so the functional UI is legible. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #1a1a1a;
+  background: #fafafa;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #ddd;
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background: #f0f0f0;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0.5rem 0;
+}
+
+dt {
+  font-weight: 600;
+  color: #555;
+}
+
+dd {
+  margin: 0;
+}
+
+.error {
+  color: #b00020;
+  font-weight: 600;
+}
+
+.pending {
+  color: #888;
+  font-style: italic;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #e0e0e0;
+}
+
+.status-AwaitingApproval {
+  background: #fff3cd;
+}
+
+.status-Approved,
+.status-EditedAndApproved {
+  background: #d4edda;
+}
+
+.status-Rejected,
+.status-Failed {
+  background: #f8d7da;
+}
+
+form label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+form input,
+form select,
+form textarea {
+  display: block;
+  width: 100%;
+  max-width: 40rem;
+  margin-top: 0.25rem;
+  padding: 0.4rem;
+  font: inherit;
+}
+
+.button-link {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  background: #1a56db;
+  color: white;
+  text-decoration: none;
+  border-radius: 0.25rem;
+}
+
+button {
+  padding: 0.4rem 0.9rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+section.stage,
+section.approval-gate,
+section.decision,
+section.failure {
+  border: 1px solid #ddd;
+  border-radius: 0.35rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+section.failure {
+  background: #fff8f0;
+  border-color: #f0c36d;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
