@@ -10,12 +10,19 @@ namespace DomainCopilot.Infrastructure.Providers;
 /// </summary>
 public sealed class OllamaCompletionService : ICompletionService
 {
+    // A local model on modest hardware genuinely takes longer per call than a hosted API,
+    // especially for a multi-tool agent turn with a long system prompt — the OpenAI SDK's default
+    // HttpClient timeout (100s) was measured to be too short for this project's own agent prompts
+    // on this machine, and no amount of retrying fixes a timeout that's structurally too short.
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromMinutes(10);
+
     private readonly SemanticKernelCompletionAdapter _adapter;
 
     public OllamaCompletionService(OllamaOptions options)
     {
+        var httpClient = new HttpClient { Timeout = RequestTimeout };
         _adapter = new SemanticKernelCompletionAdapter(ProviderName, options.Model, () => Kernel.CreateBuilder()
-            .AddOpenAIChatCompletion(options.Model, options.ChatCompletionEndpoint, apiKey: "ollama")
+            .AddOpenAIChatCompletion(options.Model, options.ChatCompletionEndpoint, apiKey: "ollama", httpClient: httpClient)
             .Build());
     }
 

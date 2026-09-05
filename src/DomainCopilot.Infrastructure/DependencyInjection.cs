@@ -119,6 +119,31 @@ public static class DependencyInjection
         services.AddScoped<FinalizeAdjudicationDecisionToolExecutor>();
         services.AddScoped<IToolExecutor>(sp => sp.GetRequiredService<FinalizeAdjudicationDecisionToolExecutor>());
 
+        // Remaining agent tools: version resolution and knowledge-base search (shared across every
+        // agent) depend on scoped repositories/services, so these are scoped too. The damage/value
+        // ratio check is pure computation, so it's singleton like the payout tools.
+        services.AddScoped<ResolvePolicyVersionToolExecutor>();
+        services.AddScoped<IToolExecutor>(sp => sp.GetRequiredService<ResolvePolicyVersionToolExecutor>());
+        services.AddScoped<SearchKnowledgeBaseToolExecutor>();
+        services.AddScoped<IToolExecutor>(sp => sp.GetRequiredService<SearchKnowledgeBaseToolExecutor>());
+        services.AddSingleton<CheckDamageValueRatioToolExecutor>();
+        services.AddSingleton<IToolExecutor>(sp => sp.GetRequiredService<CheckDamageValueRatioToolExecutor>());
+
+        // Prompts as versioned files (CLAUDE.md), not string literals — see prompts/*.md.
+        var promptOptions = configuration.GetSection(PromptOptions.SectionName).Get<PromptOptions>() ?? new PromptOptions();
+        services.AddSingleton(promptOptions);
+        services.AddSingleton<IPromptRepository, FilePromptRepository>();
+
+        // The multi-agent workflow (FR-4/FR-5, ADR-0009): four agents, each restricted to the tool
+        // set its own prompt/role needs, sharing one AgentRunner (the tool-calling loop) and one
+        // orchestrator (the fixed pipeline/state-machine driving AdjudicationCase through them).
+        services.AddScoped<AgentRunner>();
+        services.AddScoped<CoverageMatcherAgent>();
+        services.AddScoped<AnomalyAnalystAgent>();
+        services.AddScoped<ExclusionAnalystAgent>();
+        services.AddScoped<AdjudicationDrafterAgent>();
+        services.AddScoped<AdjudicationOrchestrator>();
+
         return services;
     }
 }
