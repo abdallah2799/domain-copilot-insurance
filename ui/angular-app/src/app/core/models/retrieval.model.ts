@@ -1,5 +1,5 @@
-// Mirrors DomainCopilot.Application.Retrieval's AskRequest/AskResult/CitedChunk (camelCase, enums
-// as strings — same convention as the other model files).
+// Mirrors DomainCopilot.Application.Retrieval's AskRequest/AskResult/CitedChunk/AskStreamEvent
+// (camelCase, enums as strings — same convention as the other model files).
 
 export interface CitedChunk {
   documentId: string;
@@ -30,3 +30,10 @@ export interface AskResult {
   citations: string[];
   retrievedChunks: CitedChunk[];
 }
+
+// The SSE event stream POST /api/retrieval/ask/stream sends (see AskStreamEvent.cs / the
+// RetrievalController.AskStream action) -- a discriminated union over the `event:` name.
+export type AskStreamEvent =
+  | { type: 'refused'; message: string; chunks: CitedChunk[] }
+  | { type: 'delta'; text: string }
+  | { type: 'done'; citations: string[]; chunks: CitedChunk[] };

@@ -28,6 +28,26 @@ public class AskServiceTests
         return (service, documents, vectorStore, keywordIndex, completion);
     }
 
+    private static (AskService Service, FakeDocumentRepository Documents, FakeVectorStore VectorStore, FakeKeywordSearchIndex KeywordIndex) BuildStreamingService(FakeStreamingCompletionService completion)
+    {
+        var documents = new FakeDocumentRepository();
+        var vectorStore = new FakeVectorStore();
+        var keywordIndex = new FakeKeywordSearchIndex();
+        var retrieval = new HybridRetrievalService(documents, new FakeEmbeddingService(), vectorStore, keywordIndex);
+        var service = new AskService(retrieval, completion, new FakePromptRepository());
+        return (service, documents, vectorStore, keywordIndex);
+    }
+
+    private static (Document Document, ScoredChunk Chunk) SeedOneChunk(FakeDocumentRepository documents, FakeVectorStore vectorStore, FakeKeywordSearchIndex keywordIndex, string title = "Some Reference")
+    {
+        var document = CompletedDocument(title);
+        documents.Seed(document);
+        var chunk = new ScoredChunk(document.Id, 0, "Intro", null, DocumentCategory.Reference, null, null, "Some grounded text.", Score: 0.9);
+        vectorStore.SeedSearchResults([chunk]);
+        keywordIndex.SeedSearchResults([chunk]);
+        return (document, chunk);
+    }
+
     [Fact]
     public async Task AskAsync_NoDenseMatch_RefusesWithoutCallingCompletion()
     {
@@ -101,5 +121,74 @@ public class AskServiceTests
         Assert.False(result.Refused);
         Assert.Equal("The answer is just plain prose, not JSON.", result.Answer);
         Assert.Empty(result.Citations);
+    }
+
+    [Fact]
+    public async Task AskStreamAsync_NoDenseMatch_YieldsOnlyRefusedEvent()
+    {
+        var completion = new FakeStreamingCompletionService(["should never be reached"]);
+        var (service, _, _, _) = BuildStreamingService(completion);
+
+        var events = new List<AskStreamEvent>();
+        await foreach (var evt in service.AskStreamAsync(new AskRequest("out of corpus question")))
+        {
+            events.Add(evt);
+        }
+
+        var single = Assert.Single(events);
+        Assert.Equal(AskStreamEventType.Refused, single.Type);
+        Assert.Equal(0, completion.DeltasYielded);
+    }
+
+    [Fact]
+    public async Task AskStreamAsync_SufficientEvidence_YieldsDeltasThenDoneWithAllRetrievedCitations()
+    {
+        var completion = new FakeStreamingCompletionService(["No, ", "it only ", "applies to Comprehensive."]);
+        var (service, documents, vectorStore, keywordIndex) = BuildStreamingService(completion);
+        SeedOneChunk(documents, vectorStore, keywordIndex, "Policy Wording PAP-2025-STD");
+
+        var events = new List<AskStreamEvent>();
+        await foreach (var evt in service.AskStreamAsync(new AskRequest("Does the glass waiver apply to collision?")))
+        {
+            events.Add(evt);
+        }
+
+        Assert.Equal(4, events.Count);
+        Assert.Equal(["No, ", "it only ", "applies to Comprehensive."], events.Take(3).Select(e => e.DeltaText));
+        Assert.All(events.Take(3), e => Assert.Equal(AskStreamEventType.Delta, e.Type));
+
+        var done = events[^1];
+        Assert.Equal(AskStreamEventType.Done, done.Type);
+        Assert.Single(done.Citations!);
+        Assert.Contains("Policy Wording PAP-2025-STD", done.Citations!.Single());
+    }
+
+    [Fact]
+    public async Task AskStreamAsync_CancelledMidStream_StopsEnumeratingRatherThanYieldingAllDeltas()
+    {
+        var completion = new FakeStreamingCompletionService(["one", "two", "three", "four", "five"]);
+        var (service, documents, vectorStore, keywordIndex) = BuildStreamingService(completion);
+        SeedOneChunk(documents, vectorStore, keywordIndex);
+
+        using var cts = new CancellationTokenSource();
+        var events = new List<AskStreamEvent>();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        {
+            await foreach (var evt in service.AskStreamAsync(new AskRequest("some question"), cts.Token))
+            {
+                events.Add(evt);
+                if (events.Count == 2)
+                {
+                    cts.Cancel();
+                }
+            }
+        });
+
+        // Cancellation stopped enumeration partway through -- the real streaming providers honor
+        // the same token all the way into their HTTP call, so this is the same contract, just
+        // exercised against a fake that can prove it deterministically rather than timing-depend on
+        // a real network call.
+        Assert.True(completion.DeltasYielded < 5);
     }
 }

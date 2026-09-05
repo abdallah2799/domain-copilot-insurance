@@ -7,7 +7,10 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: #1a1a1a;
   background: #fafafa;
 }
@@ -162,6 +165,16 @@ section.failure {
     border-color: #a8c4f0;
   }
 
+  .cursor {
+    animation: blink 1s step-start infinite;
+  }
+
+  form .actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
   details.chunks {
     margin-top: 1rem;
 
@@ -174,5 +187,11 @@ section.failure {
         color: #444;
       }
     }
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
   }
 }
