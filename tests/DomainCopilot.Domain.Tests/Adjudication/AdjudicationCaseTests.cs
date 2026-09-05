@@ -5,7 +5,7 @@ namespace DomainCopilot.Domain.Tests.Adjudication;
 public class AdjudicationCaseTests
 {
     private static AdjudicationCase CreateValid() =>
-        AdjudicationCase.Create("CLM-2025-04417", "MMIC-PAP-100234", new DateOnly(2025, 8, 3));
+        AdjudicationCase.Create("CLM-2025-04417", "MMIC-PAP-100234", new DateOnly(2025, 8, 3), "test-user");
 
     private static AdjudicationCase AtAwaitingApproval()
     {
@@ -30,13 +30,13 @@ public class AdjudicationCaseTests
     [Fact]
     public void Create_EmptyClaimNumber_Throws()
     {
-        Assert.Throws<ArgumentException>(() => AdjudicationCase.Create("", "MMIC-PAP-100234", new DateOnly(2025, 8, 3)));
+        Assert.Throws<ArgumentException>(() => AdjudicationCase.Create("", "MMIC-PAP-100234", new DateOnly(2025, 8, 3), "test-user"));
     }
 
     [Fact]
     public void Create_EmptyPolicyNumber_Throws()
     {
-        Assert.Throws<ArgumentException>(() => AdjudicationCase.Create("CLM-1", "", new DateOnly(2025, 8, 3)));
+        Assert.Throws<ArgumentException>(() => AdjudicationCase.Create("CLM-1", "", new DateOnly(2025, 8, 3), "test-user"));
     }
 
     [Fact]

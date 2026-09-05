@@ -47,6 +47,7 @@ export interface AdjudicationCase {
   approvedAtUtc: string | null;
   adjusterComments: string | null;
   failureReason: string | null;
+  createdByUsername: string;
   createdAtUtc: string;
   updatedAtUtc: string;
 }
@@ -103,13 +104,13 @@ export interface Recommendation {
   citations: string[];
 }
 
+// No `actor` field -- the server records the authenticated caller's own username (from the JWT)
+// as the decision's actor, never a client-supplied value (FR-8; see AdjudicationController.FinalizeAsync).
 export interface ApprovalRequest {
-  actor: string;
   comments?: string | null;
 }
 
 export interface EditAndApproveRequest {
-  actor: string;
   comments: string;
   editedRecommendationJson: string;
 }

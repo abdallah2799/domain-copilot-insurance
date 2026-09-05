@@ -13,6 +13,9 @@ internal sealed class FakeAdjudicationCaseRepository : IAdjudicationCaseReposito
     public Task<IReadOnlyList<AdjudicationCase>> ListAllAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<AdjudicationCase>>([.. _byId.Values]);
 
+    public Task<IReadOnlyList<AdjudicationCase>> ListByCreatedByAsync(string createdByUsername, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<AdjudicationCase>>([.. _byId.Values.Where(a => a.CreatedByUsername == createdByUsername)]);
+
     public Task AddAsync(AdjudicationCase adjudicationCase, CancellationToken cancellationToken = default)
     {
         _byId[adjudicationCase.Id] = adjudicationCase;

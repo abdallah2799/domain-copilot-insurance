@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using System.Text.Json;
 using DomainCopilot.Application.Adjudication;
 using DomainCopilot.Domain.Adjudication;
+using DomainCopilot.Domain.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -57,6 +60,17 @@ public sealed class AdjudicationController(
         Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     };
 
+    private string CurrentUsername => User.FindFirstValue(ClaimTypes.Name)
+        ?? throw new InvalidOperationException("Authenticated request had no username claim.");
+
+    // An Adjuster is a different actor from whoever started the run, by design (D2's approval gate,
+    // ADR-0008) — they can see and act on any case, not only ones they themselves started, so the
+    // object-ownership check below (ListRuns/GetRun/GetMemo/GetRunStream) only ever restricts an
+    // Analyst.
+    private bool IsAdjuster => User.IsInRole(nameof(UserRole.Adjuster));
+
+    private bool CanAccess(AdjudicationCase adjudicationCase) => IsAdjuster || adjudicationCase.CreatedByUsername == CurrentUsername;
+
     /// <summary>FR-6's "watch it start immediately": creates the case synchronously (so the
     /// response carries a real id right away) and runs the four-agent pipeline in the background
     /// against its own DI scope, independent of this request's lifetime -- the pipeline keeps
@@ -66,7 +80,7 @@ public sealed class AdjudicationController(
     [HttpPost("runs")]
     public async Task<ActionResult<AdjudicationCase>> StartRun([FromBody] StartAdjudicationRequest request, CancellationToken cancellationToken)
     {
-        var adjudicationCase = await orchestrator.StartCaseAsync(request, cancellationToken);
+        var adjudicationCase = await orchestrator.StartCaseAsync(request, CurrentUsername, cancellationToken);
 
         // Deliberately CancellationToken.None, not this request's token: unlike the ask/stream
         // endpoint (FR-6's other half, where cancellation is real and desired), an adjudication
@@ -122,7 +136,12 @@ public sealed class AdjudicationController(
     public async Task<ActionResult<AdjudicationCase>> GetRun(Guid id, CancellationToken cancellationToken)
     {
         var adjudicationCase = await caseRepository.FindByIdAsync(id, cancellationToken);
-        return adjudicationCase is null ? NotFound() : Ok(adjudicationCase);
+        if (adjudicationCase is null)
+        {
+            return NotFound();
+        }
+
+        return CanAccess(adjudicationCase) ? Ok(adjudicationCase) : Forbid();
     }
 
     /// <summary>T6's document-out half (ADR-0011): the same grounded stage data any other view of
@@ -132,6 +151,17 @@ public sealed class AdjudicationController(
     [HttpGet("runs/{id:guid}/memo")]
     public async Task<IActionResult> GetMemo(Guid id, CancellationToken cancellationToken)
     {
+        var adjudicationCase = await caseRepository.FindByIdAsync(id, cancellationToken);
+        if (adjudicationCase is null)
+        {
+            return NotFound();
+        }
+
+        if (!CanAccess(adjudicationCase))
+        {
+            return Forbid();
+        }
+
         var pdfBytes = await memoService.GenerateMemoAsync(id, cancellationToken);
         return pdfBytes is null ? NotFound() : File(pdfBytes, "application/pdf", $"adjudication-memo-{id}.pdf");
     }
@@ -148,6 +178,12 @@ public sealed class AdjudicationController(
         if (initial is null)
         {
             Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        if (!CanAccess(initial))
+        {
+            Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
         }
 
@@ -216,28 +252,40 @@ public sealed class AdjudicationController(
 
     [HttpGet("runs")]
     public async Task<ActionResult<IReadOnlyList<AdjudicationCase>>> ListRuns(CancellationToken cancellationToken) =>
-        Ok(await caseRepository.ListAllAsync(cancellationToken));
+        Ok(IsAdjuster
+            ? await caseRepository.ListAllAsync(cancellationToken)
+            : await caseRepository.ListByCreatedByAsync(CurrentUsername, cancellationToken));
 
+    // Adjuster-only (D2's approval gate, ADR-0008): a role check, not an ownership check -- an
+    // Adjuster finalizes any case awaiting approval, not only ones they themselves started.
     [HttpPost("runs/{id:guid}/approve")]
-    public Task<ActionResult> Approve(Guid id, [FromBody] ApprovalRequest request, CancellationToken cancellationToken) =>
-        FinalizeAsync(id, "Approve", request.Actor, comments: null, editedRecommendationJson: null, cancellationToken);
+    [Authorize(Roles = nameof(UserRole.Adjuster))]
+    public Task<ActionResult> Approve(Guid id, CancellationToken cancellationToken) =>
+        FinalizeAsync(id, "Approve", comments: null, editedRecommendationJson: null, cancellationToken);
 
     [HttpPost("runs/{id:guid}/reject")]
+    [Authorize(Roles = nameof(UserRole.Adjuster))]
     public Task<ActionResult> Reject(Guid id, [FromBody] ApprovalRequest request, CancellationToken cancellationToken) =>
-        FinalizeAsync(id, "Reject", request.Actor, request.Comments, editedRecommendationJson: null, cancellationToken);
+        FinalizeAsync(id, "Reject", request.Comments, editedRecommendationJson: null, cancellationToken);
 
     [HttpPost("runs/{id:guid}/edit-and-approve")]
+    [Authorize(Roles = nameof(UserRole.Adjuster))]
     public Task<ActionResult> EditAndApprove(Guid id, [FromBody] EditAndApproveRequest request, CancellationToken cancellationToken) =>
-        FinalizeAsync(id, "EditAndApprove", request.Actor, request.Comments, request.EditedRecommendationJson, cancellationToken);
+        FinalizeAsync(id, "EditAndApprove", request.Comments, request.EditedRecommendationJson, cancellationToken);
 
+    // The actor recorded against a decision is now always the authenticated caller's own username
+    // (FR-8), never a client-supplied value -- before auth existed, this came from a free-text
+    // field the Angular UI let anyone type into, which meant the audit trail (AdjudicationCase's
+    // ApprovedBy) could be trivially spoofed. A JWT's claims can't be forged without the signing
+    // key, so this is the first point at which that field became a genuine audit record.
     private async Task<ActionResult> FinalizeAsync(
-        Guid id, string decision, string actor, string? comments, string? editedRecommendationJson, CancellationToken cancellationToken)
+        Guid id, string decision, string? comments, string? editedRecommendationJson, CancellationToken cancellationToken)
     {
         var argumentsJson = JsonSerializer.Serialize(new
         {
             adjudicationCaseId = id,
             decision,
-            actor,
+            actor = CurrentUsername,
             comments,
             editedRecommendationJson,
         });
@@ -246,7 +294,7 @@ public sealed class AdjudicationController(
         return result.Success ? Ok(JsonSerializer.Deserialize<JsonElement>(result.ResultJson!)) : BadRequest(result.ErrorMessage);
     }
 
-    public sealed record ApprovalRequest(string Actor, string? Comments);
+    public sealed record ApprovalRequest(string? Comments);
 
-    public sealed record EditAndApproveRequest(string Actor, string Comments, string EditedRecommendationJson);
+    public sealed record EditAndApproveRequest(string Comments, string EditedRecommendationJson);
 }

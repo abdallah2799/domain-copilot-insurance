@@ -38,9 +38,9 @@ public sealed class AdjudicationOrchestrator(
     /// controller) can hand the client a real case id to watch over SSE before committing to the
     /// full multi-minute pipeline run, rather than making the client wait for the whole thing before
     /// it even knows the run exists.</summary>
-    public async Task<AdjudicationCase> StartCaseAsync(StartAdjudicationRequest request, CancellationToken cancellationToken = default)
+    public async Task<AdjudicationCase> StartCaseAsync(StartAdjudicationRequest request, string createdByUsername, CancellationToken cancellationToken = default)
     {
-        var adjudicationCase = AdjudicationCase.Create(request.ClaimNumber, request.PolicyNumber, request.DateOfLoss);
+        var adjudicationCase = AdjudicationCase.Create(request.ClaimNumber, request.PolicyNumber, request.DateOfLoss, createdByUsername);
         await caseRepository.AddAsync(adjudicationCase, cancellationToken);
         await caseRepository.SaveChangesAsync(cancellationToken);
         return adjudicationCase;

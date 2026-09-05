@@ -19,6 +19,13 @@ public sealed class AdjudicationCaseConfiguration : IEntityTypeConfiguration<Adj
         builder.Property(a => a.PolicyNumber).HasMaxLength(50).IsRequired();
         builder.HasIndex(a => a.PolicyNumber);
 
+        // Default '' rather than a required column with no default: existing rows created before
+        // FR-8 have no owner to backfill, and this is queried (ListByCreatedByAsync) rather than a
+        // domain invariant enforced on load, so an empty value for legacy rows is safe — it simply
+        // never matches any real username, which is the correct behavior for pre-FR-8 data.
+        builder.Property(a => a.CreatedByUsername).HasMaxLength(256).IsRequired().HasDefaultValue(string.Empty);
+        builder.HasIndex(a => a.CreatedByUsername);
+
         builder.Property(a => a.Status).HasConversion<string>().HasMaxLength(50);
         builder.HasIndex(a => a.Status);
 

@@ -53,6 +53,13 @@ namespace DomainCopilot.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("CreatedByUsername")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasDefaultValue("");
+
                     b.Property<DateOnly>("DateOfLoss")
                         .HasColumnType("date");
 
@@ -82,6 +89,8 @@ namespace DomainCopilot.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClaimNumber");
+
+                    b.HasIndex("CreatedByUsername");
 
                     b.HasIndex("PolicyNumber");
 
@@ -311,6 +320,37 @@ namespace DomainCopilot.Infrastructure.Persistence.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("Documents", (string)null);
+                });
+
+            modelBuilder.Entity("DomainCopilot.Domain.Identity.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("DomainCopilot.Domain.Ocr.ScannedDocument", b =>

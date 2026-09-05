@@ -1,17 +1,20 @@
 using DomainCopilot.Application.Adjudication;
 using DomainCopilot.Application.CaseData;
 using DomainCopilot.Application.Documents;
+using DomainCopilot.Application.Identity;
 using DomainCopilot.Application.Ingestion;
 using DomainCopilot.Application.Ocr;
 using DomainCopilot.Application.Providers;
 using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Application.VectorStore;
 using DomainCopilot.Infrastructure.Adjudication;
+using DomainCopilot.Infrastructure.Identity;
 using DomainCopilot.Infrastructure.Ingestion;
 using DomainCopilot.Infrastructure.Ocr;
 using DomainCopilot.Infrastructure.Persistence;
 using DomainCopilot.Infrastructure.Persistence.Adjudication;
 using DomainCopilot.Infrastructure.Persistence.CaseData;
+using DomainCopilot.Infrastructure.Persistence.Identity;
 using DomainCopilot.Infrastructure.Persistence.Ocr;
 using DomainCopilot.Infrastructure.Providers;
 using DomainCopilot.Infrastructure.Retrieval;
@@ -19,6 +22,7 @@ using DomainCopilot.Infrastructure.VectorStore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Qdrant.Client;
 using IVectorStore = DomainCopilot.Application.VectorStore.IVectorStore;
 
@@ -36,6 +40,16 @@ public static class DependencyInjection
         services.AddScoped<IClaimHistoryRepository, ClaimHistoryRepository>();
         services.AddScoped<CaseDataLoadingService>();
         services.AddScoped<IAdjudicationCaseRepository, AdjudicationCaseRepository>();
+
+        // FR-8 (ADR-0012): PBKDF2 hashing (BCL only), JWT issuance, and a startup seeder for the two
+        // demo accounts (one per role) this project ships with instead of self-service registration.
+        var authOptions = AuthOptions.FromConfiguration(configuration);
+        services.AddSingleton(authOptions);
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+        services.AddSingleton<ITokenService, JwtTokenService>();
+        services.AddScoped<AuthService>();
+        services.AddHostedService<DemoUserSeeder>();
 
         var qdrantOptions = configuration.GetSection(QdrantOptions.SectionName).Get<QdrantOptions>() ?? new QdrantOptions();
         services.AddSingleton(qdrantOptions);

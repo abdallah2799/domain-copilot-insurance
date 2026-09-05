@@ -158,50 +158,52 @@
       <section class="approval-gate">
         <h3>Approval gate</h3>
 
-        <label>
-          Acting as
-          <input type="text" [ngModel]="actorName()" (ngModelChange)="actorName.set($event)" />
-        </label>
-
         @if (actionError()) {
           <p class="error">{{ actionError() }}</p>
         }
 
-        <div class="approval-actions">
-          <button type="button" [disabled]="actionInProgress()" (click)="approve()">Approve</button>
+        @if (authService.isAdjuster()) {
+          <div class="approval-actions">
+            <button type="button" [disabled]="actionInProgress()" (click)="approve()">Approve</button>
 
-          <details>
-            <summary>Reject</summary>
-            <textarea
-              rows="2"
-              placeholder="Reason for rejection"
-              [ngModel]="rejectComments()"
-              (ngModelChange)="rejectComments.set($event)"
-            ></textarea>
-            <button type="button" [disabled]="actionInProgress()" (click)="reject()">
-              Confirm reject
-            </button>
-          </details>
+            <details>
+              <summary>Reject</summary>
+              <textarea
+                rows="2"
+                placeholder="Reason for rejection"
+                [ngModel]="rejectComments()"
+                (ngModelChange)="rejectComments.set($event)"
+              ></textarea>
+              <button type="button" [disabled]="actionInProgress()" (click)="reject()">
+                Confirm reject
+              </button>
+            </details>
 
-          <details>
-            <summary>Edit and approve</summary>
-            <textarea
-              rows="6"
-              placeholder="Edited recommendation JSON"
-              [ngModel]="editedRecommendationJson()"
-              (ngModelChange)="editedRecommendationJson.set($event)"
-            ></textarea>
-            <textarea
-              rows="2"
-              placeholder="Comment explaining the edit"
-              [ngModel]="editComments()"
-              (ngModelChange)="editComments.set($event)"
-            ></textarea>
-            <button type="button" [disabled]="actionInProgress()" (click)="editAndApprove()">
-              Confirm edit and approve
-            </button>
-          </details>
-        </div>
+            <details>
+              <summary>Edit and approve</summary>
+              <textarea
+                rows="6"
+                placeholder="Edited recommendation JSON"
+                [ngModel]="editedRecommendationJson()"
+                (ngModelChange)="editedRecommendationJson.set($event)"
+              ></textarea>
+              <textarea
+                rows="2"
+                placeholder="Comment explaining the edit"
+                [ngModel]="editComments()"
+                (ngModelChange)="editComments.set($event)"
+              ></textarea>
+              <button type="button" [disabled]="actionInProgress()" (click)="editAndApprove()">
+                Confirm edit and approve
+              </button>
+            </details>
+          </div>
+        } @else {
+          <!-- Server-enforced (AdjudicationController), not just hidden here: only an Adjuster
+               role can call approve/reject/edit-and-approve at all -- this note is UX, not the
+               actual access control. -->
+          <p class="pending">Awaiting an Adjuster's decision. Only the Adjuster role can act here.</p>
+        }
       </section>
     }
 
