@@ -11,4 +11,7 @@
     <Project Path="tests/DomainCopilot.Domain.Tests/DomainCopilot.Domain.Tests.csproj" />
     <Project Path="tests/DomainCopilot.Integration.Tests/DomainCopilot.Integration.Tests.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/DomainCopilot.EvaluationHarness/DomainCopilot.EvaluationHarness.csproj" />
+  </Folder>
 </Solution>
