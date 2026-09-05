@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using DomainCopilot.Application.Adjudication;
 using DomainCopilot.Application.Providers;
@@ -40,7 +41,44 @@ public sealed class AskService(HybridRetrievalService retrievalService, IComplet
         return new AskResult(Refused: false, answer, citations, retrieval.Chunks);
     }
 
-    private static string CitationId(CitedChunk chunk) =>
+    /// <summary>FR-6's SSE token streaming: the same retrieval and refusal short-circuit as <see
+    /// cref="AskAsync"/>, but a plain-prose streaming prompt (prompts/ask-stream.md) and one <see
+    /// cref="AskStreamEvent.Delta"/> per token instead of a single JSON completion — see <see
+    /// cref="AskStreamEventType.Done"/> for why its citation list isn't the model-selected subset
+    /// <see cref="AskAsync"/> returns.</summary>
+    public async IAsyncEnumerable<AskStreamEvent> AskStreamAsync(AskRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var retrieval = await retrievalService.SearchAsync(
+            new RetrievalQuery(request.Question, request.TopK, request.DateOfLoss, request.FormVersion, request.Category),
+            cancellationToken);
+
+        if (!retrieval.HasSufficientEvidence)
+        {
+            yield return AskStreamEvent.Refused(RefusalMessage, retrieval.Chunks);
+            yield break;
+        }
+
+        var systemPrompt = await prompts.GetAsync("ask-stream", cancellationToken);
+        var passagesText = string.Join("\n\n", retrieval.Chunks.Select(c => $"[{CitationId(c)}] {c.Text}"));
+        var userMessage = $"Question: \"{request.Question}\"\nRetrieved passages:\n{passagesText}";
+
+        var stream = completionService.StreamCompleteAsync(new CompletionRequest([
+            ChatMessage.System(systemPrompt),
+            ChatMessage.User(userMessage),
+        ]), cancellationToken);
+
+        await foreach (var chunk in stream)
+        {
+            if (!string.IsNullOrEmpty(chunk.DeltaContent))
+            {
+                yield return AskStreamEvent.Delta(chunk.DeltaContent);
+            }
+        }
+
+        yield return AskStreamEvent.Done(retrieval.Chunks);
+    }
+
+    internal static string CitationId(CitedChunk chunk) =>
         chunk.PageNumber is { } page ? $"{chunk.DocumentTitle}, {chunk.SectionTitle}, p.{page}" : $"{chunk.DocumentTitle}, {chunk.SectionTitle}";
 
     // Ask's prompt asks for one small JSON object with no preceding tool-call reasoning (unlike the
