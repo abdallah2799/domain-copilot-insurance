@@ -3,6 +3,7 @@ using DomainCopilot.Application.CaseData;
 using DomainCopilot.Application.Documents;
 using DomainCopilot.Application.Identity;
 using DomainCopilot.Application.Ingestion;
+using DomainCopilot.Application.Observability;
 using DomainCopilot.Application.Ocr;
 using DomainCopilot.Application.Providers;
 using DomainCopilot.Application.Retrieval;
@@ -10,6 +11,7 @@ using DomainCopilot.Application.VectorStore;
 using DomainCopilot.Infrastructure.Adjudication;
 using DomainCopilot.Infrastructure.Identity;
 using DomainCopilot.Infrastructure.Ingestion;
+using DomainCopilot.Infrastructure.Observability;
 using DomainCopilot.Infrastructure.Ocr;
 using DomainCopilot.Infrastructure.Persistence;
 using DomainCopilot.Infrastructure.Persistence.Adjudication;
@@ -33,8 +35,16 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddDomainCopilotInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<DomainCopilotDbContext>(options =>
+        // A factory, not AddDbContext directly: FR-9's token-usage recorder needs its own
+        // short-lived context per write (see EfTokenUsageRecorder), independent of whatever the
+        // ambient per-request scoped context happens to be doing -- registering both AddDbContext
+        // and AddDbContextFactory for the same TContext produces a lifetime conflict (a singleton
+        // factory can't consume the scoped DbContextOptions AddDbContext registers), so the scoped
+        // DomainCopilotDbContext everything else here injects is instead created from this same
+        // factory, per Microsoft's documented pattern for combining the two.
+        services.AddDbContextFactory<DomainCopilotDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("Default")));
+        services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<DomainCopilotDbContext>>().CreateDbContext());
         services.AddScoped<IDocumentRepository, DocumentRepository>();
         services.AddScoped<IPolicyDeclarationRepository, PolicyDeclarationRepository>();
         services.AddScoped<IClaimHistoryRepository, ClaimHistoryRepository>();
@@ -50,6 +60,12 @@ public static class DependencyInjection
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddScoped<AuthService>();
         services.AddHostedService<DemoUserSeeder>();
+
+        // FR-9 (ADR-0013): per-completion-call token/cost accounting, recorded from AgentRunner and
+        // AskService via the ITokenUsageRecorder port.
+        services.AddSingleton(ModelPricingOptions.FromConfiguration(configuration));
+        services.AddSingleton<ITokenUsageRecorder, EfTokenUsageRecorder>();
+        services.AddScoped<ITokenUsageQueryService, EfTokenUsageQueryService>();
 
         var qdrantOptions = configuration.GetSection(QdrantOptions.SectionName).Get<QdrantOptions>() ?? new QdrantOptions();
         services.AddSingleton(qdrantOptions);

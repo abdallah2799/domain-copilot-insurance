@@ -1,9 +1,13 @@
+using System.Diagnostics;
 using System.Text;
+using DomainCopilot.Application.Observability;
 using DomainCopilot.Infrastructure;
 using DomainCopilot.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 // Only for running `dotnet run` directly on a host (no Docker Compose env_file injection).
 // Loads into real process env vars before configuration binding runs, so it's indistinguishable
@@ -45,6 +49,21 @@ builder.Services
     });
 builder.Services.AddAuthorization(options => options.FallbackPolicy = options.DefaultPolicy);
 
+// FR-9 (ADR-0013): traces for every request (AspNetCore instrumentation) and every outbound HTTP
+// call a provider adapter makes (HttpClient instrumentation), plus DomainCopilotActivitySource's
+// own spans (an adjudication stage, an agent's completion call) -- all nested under the same
+// request trace via ambient AsyncLocal Activity propagation, no manual correlation-id plumbing
+// needed for that nesting. AddOtlpExporter() with no explicit endpoint reads the standard
+// OTEL_EXPORTER_OTLP_ENDPOINT env var itself (the OTel .NET SDK's own contract), exported to a
+// self-hosted .NET Aspire Dashboard (docker-compose's otel-collector service).
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("domain-copilot-api"))
+    .WithTracing(tracing => tracing
+        .AddSource(DomainCopilotActivitySource.Name)
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddOtlpExporter());
+
 // Dev-only: the Angular dev server (localhost:4200) runs on a different origin than the API
 // (localhost:5080).
 const string AngularDevCorsPolicy = "AngularDev";
@@ -58,6 +77,24 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi().AllowAnonymous();
     app.UseCors(AngularDevCorsPolicy);
 }
+
+// FR-9's correlation ID: the request's own W3C trace id (ASP.NET Core starts an Activity per
+// request automatically, honoring an incoming `traceparent` header if the caller sent one) --
+// surfaced on the response so a caller can correlate their own logs against this one, and pushed
+// into every log line this request produces via a logger scope, so "request → orchestrator →
+// agent → LLM call" is greppable by one id across the whole log stream, not just visible in a
+// trace viewer.
+app.Use(async (context, next) =>
+{
+    var correlationId = Activity.Current?.TraceId.ToString() ?? context.TraceIdentifier;
+    context.Response.Headers["X-Correlation-Id"] = correlationId;
+
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    using (logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId }))
+    {
+        await next();
+    }
+});
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

@@ -4,6 +4,7 @@ using DomainCopilot.Domain.Documents;
 using DomainCopilot.Domain.Identity;
 using DomainCopilot.Domain.Ocr;
 using DomainCopilot.Infrastructure.Persistence.Chunks;
+using DomainCopilot.Infrastructure.Persistence.Observability;
 using Microsoft.EntityFrameworkCore;
 
 namespace DomainCopilot.Infrastructure.Persistence;
@@ -23,6 +24,8 @@ public sealed class DomainCopilotDbContext(DbContextOptions<DomainCopilotDbConte
     public DbSet<ScannedDocument> ScannedDocuments => Set<ScannedDocument>();
 
     public DbSet<User> Users => Set<User>();
+
+    public DbSet<TokenUsageRecord> TokenUsageRecords => Set<TokenUsageRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

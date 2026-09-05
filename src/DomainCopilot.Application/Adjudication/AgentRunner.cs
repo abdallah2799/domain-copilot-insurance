@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Text.Json;
+using DomainCopilot.Application.Observability;
 using DomainCopilot.Application.Providers;
 using Microsoft.Extensions.Logging;
 
@@ -20,7 +22,7 @@ namespace DomainCopilot.Application.Adjudication;
 /// is the caller's responsibility via <see cref="CancellationToken"/> — every async call here respects
 /// it, so the orchestrator can bound an entire agent step with one linked token.
 /// </summary>
-public sealed class AgentRunner(ICompletionService completionService, ILogger<AgentRunner> logger)
+public sealed class AgentRunner(ICompletionService completionService, ITokenUsageRecorder tokenUsageRecorder, ILogger<AgentRunner> logger)
 {
     private const int MaxCompletionAttempts = 3;
 
@@ -40,22 +42,38 @@ public sealed class AgentRunner(ICompletionService completionService, ILogger<Ag
         for (var iteration = 1; iteration <= maxIterations; iteration++)
         {
             CompletionResult completion;
-            try
+            using (var activity = DomainCopilotActivitySource.Instance.StartActivity($"agent.completion.{agentName}"))
             {
-                completion = await CompleteWithRetryAsync(new CompletionRequest(messages, toolDefinitions), agentName, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                // A cancellation from the caller's own token (e.g. the orchestrator's per-step
-                // timeout) — distinct from a retry-exhausted failure, and not something retrying
-                // again would ever fix, so it's reported as what it actually is rather than the
-                // generic "failed after N attempts" message below.
-                throw;
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "{Agent} completion failed after retries on iteration {Iteration}", agentName, iteration);
-                return AgentRunResult<T>.Failed($"{agentName}: completion call failed after {MaxCompletionAttempts} attempts: {ex.Message}");
+                try
+                {
+                    completion = await CompleteWithRetryAsync(new CompletionRequest(messages, toolDefinitions), agentName, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // A cancellation from the caller's own token (e.g. the orchestrator's per-step
+                    // timeout) — distinct from a retry-exhausted failure, and not something retrying
+                    // again would ever fix, so it's reported as what it actually is rather than the
+                    // generic "failed after N attempts" message below.
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "{Agent} completion failed after retries on iteration {Iteration}", agentName, iteration);
+                    return AgentRunResult<T>.Failed($"{agentName}: completion call failed after {MaxCompletionAttempts} attempts: {ex.Message}");
+                }
+
+                activity?.SetTag("provider", completion.ProviderName);
+                activity?.SetTag("model", completion.ModelName);
+                activity?.SetTag("tokens.prompt", completion.Usage.PromptTokens);
+                activity?.SetTag("tokens.completion", completion.Usage.CompletionTokens);
+
+                await tokenUsageRecorder.RecordAsync(new TokenUsageEntry(
+                    CorrelationId: Activity.Current?.TraceId.ToString() ?? "unknown",
+                    AgentName: agentName,
+                    ProviderName: completion.ProviderName,
+                    ModelName: completion.ModelName,
+                    PromptTokens: completion.Usage.PromptTokens,
+                    CompletionTokens: completion.Usage.CompletionTokens), cancellationToken);
             }
 
             if (completion.ToolCalls.Count == 0)

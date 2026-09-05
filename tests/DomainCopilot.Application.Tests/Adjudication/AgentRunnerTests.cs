@@ -1,5 +1,6 @@
 using DomainCopilot.Application.Adjudication;
 using DomainCopilot.Application.Providers;
+using DomainCopilot.Application.Tests.Observability;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DomainCopilot.Application.Tests.Adjudication;
@@ -8,8 +9,8 @@ public class AgentRunnerTests
 {
     private sealed record TestOutput(string Value);
 
-    private static AgentRunner NewRunner(SequencedFakeCompletionService completionService) =>
-        new(completionService, NullLogger<AgentRunner>.Instance);
+    private static AgentRunner NewRunner(SequencedFakeCompletionService completionService, FakeTokenUsageRecorder? tokenUsageRecorder = null) =>
+        new(completionService, tokenUsageRecorder ?? new FakeTokenUsageRecorder(), NullLogger<AgentRunner>.Instance);
 
     private static CompletionResult FinalAnswer(string content) =>
         new(content, [], TokenUsage.Zero, "fake", "fake-model");
@@ -237,5 +238,22 @@ public class AgentRunnerTests
 
         Assert.True(result.Success);
         Assert.Equal("a perfectly normal final answer", result.Output!.Value);
+    }
+
+    [Fact]
+    public async Task RunAsync_EachCompletionCall_RecordsRealTokenUsage()
+    {
+        var completion = new SequencedFakeCompletionService();
+        completion.Enqueue(() => new CompletionResult("""{"value":"tool-turn"}""", [new ToolCall("call-1", "my_tool", "{}")], new TokenUsage(100, 20), "fake-provider", "fake-model"));
+        completion.Enqueue(() => new CompletionResult("""{"value":"done"}""", [], new TokenUsage(150, 30), "fake-provider", "fake-model"));
+        var tool = new FakeToolExecutor("my_tool", _ => ToolExecutionResult.Ok("""{"result":42}"""));
+        var recorder = new FakeTokenUsageRecorder();
+        var runner = NewRunner(completion, recorder);
+
+        await runner.RunAsync<TestOutput>("TestAgent", "system", "user", [tool], maxIterations: 5);
+
+        Assert.Equal(2, recorder.RecordedEntries.Count);
+        Assert.All(recorder.RecordedEntries, e => Assert.Equal("TestAgent", e.AgentName));
+        Assert.Equal([(100, 20), (150, 30)], recorder.RecordedEntries.Select(e => (e.PromptTokens, e.CompletionTokens)));
     }
 }

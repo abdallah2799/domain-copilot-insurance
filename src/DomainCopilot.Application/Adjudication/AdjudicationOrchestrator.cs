@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DomainCopilot.Application.Observability;
 using DomainCopilot.Application.Providers;
 using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Domain.Adjudication;
@@ -115,6 +116,9 @@ public sealed class AdjudicationOrchestrator(
         Func<CancellationToken, Task<AgentRunResult<T>>> step)
         where T : class
     {
+        using var activity = DomainCopilotActivitySource.Instance.StartActivity($"adjudication.stage.{stageName}");
+        activity?.SetTag("case.id", adjudicationCase.Id.ToString());
+
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(StepTimeout);
 
@@ -127,6 +131,8 @@ public sealed class AdjudicationOrchestrator(
         {
             result = AgentRunResult<T>.Failed($"{stageName} exceeded its {StepTimeout.TotalMinutes}-minute step timeout.");
         }
+
+        activity?.SetTag("stage.success", result.Success);
 
         if (result.Success)
         {

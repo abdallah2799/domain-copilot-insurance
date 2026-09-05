@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using DomainCopilot.Application.Adjudication;
+using DomainCopilot.Application.Observability;
 using DomainCopilot.Application.Providers;
 
 namespace DomainCopilot.Application.Retrieval;
@@ -11,7 +13,11 @@ namespace DomainCopilot.Application.Retrieval;
 /// machinery that loop exists for doesn't apply. A refusal (FR-2's evidence-sufficiency signal)
 /// short-circuits before any completion call is made, so a low-evidence question never costs LLM
 /// spend just to be told no.</summary>
-public sealed class AskService(HybridRetrievalService retrievalService, ICompletionService completionService, IPromptRepository prompts)
+public sealed class AskService(
+    HybridRetrievalService retrievalService,
+    ICompletionService completionService,
+    IPromptRepository prompts,
+    ITokenUsageRecorder tokenUsageRecorder)
 {
     private const string RefusalMessage = "The corpus doesn't have strong enough matching material to answer this question confidently.";
 
@@ -32,10 +38,21 @@ public sealed class AskService(HybridRetrievalService retrievalService, IComplet
         var passagesText = string.Join("\n\n", retrieval.Chunks.Select(c => $"[{CitationId(c)}] {c.Text}"));
         var userMessage = $"Question: \"{request.Question}\"\nRetrieved passages:\n{passagesText}";
 
+        using var activity = DomainCopilotActivitySource.Instance.StartActivity("ask.completion");
         var completion = await completionService.CompleteAsync(new CompletionRequest([
             ChatMessage.System(systemPrompt),
             ChatMessage.User(userMessage),
         ]), cancellationToken);
+
+        activity?.SetTag("provider", completion.ProviderName);
+        activity?.SetTag("model", completion.ModelName);
+        await tokenUsageRecorder.RecordAsync(new TokenUsageEntry(
+            CorrelationId: Activity.Current?.TraceId.ToString() ?? "unknown",
+            AgentName: "Ask",
+            ProviderName: completion.ProviderName,
+            ModelName: completion.ModelName,
+            PromptTokens: completion.Usage.PromptTokens,
+            CompletionTokens: completion.Usage.CompletionTokens), cancellationToken);
 
         var (answer, citations) = ParseAnswer(completion.Content ?? string.Empty);
         return new AskResult(Refused: false, answer, citations, retrieval.Chunks);
@@ -62,18 +79,39 @@ public sealed class AskService(HybridRetrievalService retrievalService, IComplet
         var passagesText = string.Join("\n\n", retrieval.Chunks.Select(c => $"[{CitationId(c)}] {c.Text}"));
         var userMessage = $"Question: \"{request.Question}\"\nRetrieved passages:\n{passagesText}";
 
+        using var activity = DomainCopilotActivitySource.Instance.StartActivity("ask.stream.completion");
         var stream = completionService.StreamCompleteAsync(new CompletionRequest([
             ChatMessage.System(systemPrompt),
             ChatMessage.User(userMessage),
         ]), cancellationToken);
 
+        TokenUsage? usage = null;
         await foreach (var chunk in stream)
         {
             if (!string.IsNullOrEmpty(chunk.DeltaContent))
             {
                 yield return AskStreamEvent.Delta(chunk.DeltaContent);
             }
+
+            if (chunk.Usage is { } chunkUsage)
+            {
+                usage = chunkUsage;
+            }
         }
+
+        // Unlike CompletionResult, a streamed CompletionChunk carries no provider/model name (only
+        // usage, on its final chunk) -- completionService.ProviderName is the fallback chain's own
+        // combined name (e.g. "OpenRouter->Ollama"), the closest honest answer available here for
+        // which leg actually served this call without changing the streaming chunk contract just
+        // for this accounting row.
+        activity?.SetTag("provider", completionService.ProviderName);
+        await tokenUsageRecorder.RecordAsync(new TokenUsageEntry(
+            CorrelationId: Activity.Current?.TraceId.ToString() ?? "unknown",
+            AgentName: "AskStream",
+            ProviderName: completionService.ProviderName,
+            ModelName: "unknown (not reported per-chunk)",
+            PromptTokens: usage?.PromptTokens ?? 0,
+            CompletionTokens: usage?.CompletionTokens ?? 0), cancellationToken);
 
         yield return AskStreamEvent.Done(retrieval.Chunks);
     }
