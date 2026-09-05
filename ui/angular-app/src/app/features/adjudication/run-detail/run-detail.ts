@@ -2,7 +2,6 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { interval, startWith, switchMap } from 'rxjs';
 import { AdjudicationService } from '../../../core/services/adjudication.service';
 import {
   AdjudicationCase,
@@ -20,8 +19,6 @@ const STAGE_ORDER = [
   'Exclusion Analyst',
   'Adjudication Drafter',
 ] as const;
-
-const TERMINAL_STATUSES = new Set(['Approved', 'Rejected', 'EditedAndApproved', 'Failed']);
 
 @Component({
   selector: 'app-run-detail',
@@ -63,15 +60,13 @@ export class RunDetail implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
 
-    // Poll every 3s so a run opened from run-list while another client's POST is still mid-pipeline
-    // shows live progress; harmless once a run reaches a terminal status since it's just a cheap
-    // GET returning the same data each time. Stops automatically when the component is destroyed.
-    interval(3000)
-      .pipe(
-        startWith(0),
-        switchMap(() => this.adjudicationService.getRun(id)),
-        takeUntilDestroyed(this.destroyRef),
-      )
+    // FR-6's live agent progress: pushes an update each time the pipeline actually advances a
+    // stage, and closes itself once the pipeline reaches AwaitingApproval or a terminal status
+    // (see AdjudicationService.streamRun / PIPELINE_IN_PROGRESS_STATUSES) rather than polling
+    // forever. takeUntilDestroyed also closes it if this view is left before that happens.
+    this.adjudicationService
+      .streamRun(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (run) => this.run.set(run),
         error: (err) => this.error.set(`Failed to load run: ${err.message ?? err}`),
@@ -149,9 +144,5 @@ export class RunDetail implements OnInit {
     } catch {
       return null;
     }
-  }
-
-  isTerminal(run: AdjudicationCase): boolean {
-    return TERMINAL_STATUSES.has(run.status);
   }
 }

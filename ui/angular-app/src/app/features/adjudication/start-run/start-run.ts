@@ -44,10 +44,9 @@ export class StartRun {
         policeReportText: value.policeReportText.trim().length > 0 ? value.policeReportText : null,
       })
       .subscribe({
-        // The orchestrator runs the full pipeline synchronously before responding, so this can
-        // take anywhere from under a minute to several minutes depending on the completion
-        // provider — the "submitting" state stays true for the whole call, deliberately, rather
-        // than optimistically navigating away before a result actually exists.
+        // The API creates the case and returns immediately, running the four-agent pipeline in
+        // the background (FR-6) -- this call itself resolves in well under a second; the run
+        // detail page picks up live progress from there via AdjudicationService.streamRun.
         next: (result) => {
           this.submitting.set(false);
           this.router.navigate(['/runs', result.id]);
