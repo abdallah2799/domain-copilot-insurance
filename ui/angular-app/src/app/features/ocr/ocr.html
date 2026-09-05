@@ -1,0 +1,66 @@
+<div class="ocr">
+  <h2>Scanned claim document (OCR)</h2>
+  <p class="hint">
+    Upload a scanned claim document (a claim intake form, a police report scan, ...). Each page is
+    OCR'd with a real confidence score -- a page below the review threshold routes the whole
+    document to <strong>NeedsReview</strong> instead of being silently trusted.
+  </p>
+
+  <form (ngSubmit)="submit()">
+    <label>
+      Claim number
+      <input
+        type="text"
+        placeholder="CLM-2025-04417"
+        [ngModel]="claimNumber()"
+        (ngModelChange)="claimNumber.set($event)"
+        name="claimNumber"
+      />
+    </label>
+    <label>
+      Scanned document (PDF)
+      <input type="file" accept="application/pdf" (change)="onFileSelected($event)" />
+    </label>
+    <button type="submit" [disabled]="uploading() || !selectedFile() || !claimNumber().trim()">
+      {{ uploading() ? 'Processing…' : 'Upload and run OCR' }}
+    </button>
+  </form>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (result(); as r) {
+    <section [class]="'status-' + r.status">
+      <h3>{{ r.sourceFileName }} — {{ r.status }}</h3>
+      <dl>
+        <dt>Overall confidence</dt>
+        <dd>
+          {{
+            r.overallConfidencePercent != null
+              ? (r.overallConfidencePercent | number: '1.1-1') + '%'
+              : '—'
+          }}
+        </dd>
+        <dt>Lowest page confidence</dt>
+        <dd>
+          {{
+            r.lowestPageConfidencePercent != null
+              ? (r.lowestPageConfidencePercent | number: '1.1-1') + '%'
+              : '—'
+          }}
+        </dd>
+        @if (r.errorMessage) {
+          <dt>Error</dt>
+          <dd>{{ r.errorMessage }}</dd>
+        }
+      </dl>
+      @if (r.combinedText) {
+        <details>
+          <summary>Extracted text</summary>
+          <pre>{{ r.combinedText }}</pre>
+        </details>
+      }
+    </section>
+  }
+</div>
