@@ -1,3 +1,4 @@
+using System.Globalization;
 using DomainCopilot.Application.Adjudication;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -113,8 +114,8 @@ public sealed class AdjudicationMemoGenerator : IAdjudicationMemoGenerator
 
                 BodyCell(table, coverageMatch.CoveragePart);
                 BodyCell(table, coverageMatch.CoveragePartSelected ? "Yes" : "No");
-                BodyCell(table, coverageMatch.ApplicableLimit?.ToString("C") ?? "—");
-                BodyCell(table, coverageMatch.ApplicableDeductible?.ToString("C") ?? "—");
+                BodyCell(table, FormatUsd(coverageMatch.ApplicableLimit));
+                BodyCell(table, FormatUsd(coverageMatch.ApplicableDeductible));
             });
 
             column.Item().PaddingTop(4).Text($"Form version: {coverageMatch.FormVersion} (effective {coverageMatch.FormVersionEffectiveDate:yyyy-MM-dd})");
@@ -195,7 +196,7 @@ public sealed class AdjudicationMemoGenerator : IAdjudicationMemoGenerator
                 inner.Item().Text($"Recommendation: {recommendation.RecommendationType}").Bold();
                 if (recommendation.PayoutAmount is { } amount)
                 {
-                    inner.Item().Text($"Payout amount: {amount:C}" + (recommendation.PayoutToolUsed is { } tool ? $" (via {tool})" : ""));
+                    inner.Item().Text($"Payout amount: {FormatUsd(amount)}" + (recommendation.PayoutToolUsed is { } tool ? $" (via {tool})" : ""));
                 }
 
                 inner.Item().Text(recommendation.Summary);
@@ -258,4 +259,12 @@ public sealed class AdjudicationMemoGenerator : IAdjudicationMemoGenerator
 
     private static void BodyCell(TableDescriptor table, string text) =>
         table.Cell().Padding(4).Text(text);
+
+    // Found via a real CI failure, not assumed: decimal.ToString("C") formats using the current
+    // thread's culture, which differed between this dev machine (produced "$4,500.00") and the
+    // GitHub Actions runner (produced something else, failing a test asserting on the exact
+    // string). This corpus is entirely USD, regardless of which machine renders the memo, so the
+    // format is pinned explicitly rather than left to whatever culture happens to be active.
+    private static string FormatUsd(decimal? amount) =>
+        amount is { } value ? $"${value.ToString("N2", CultureInfo.InvariantCulture)}" : "—";
 }
