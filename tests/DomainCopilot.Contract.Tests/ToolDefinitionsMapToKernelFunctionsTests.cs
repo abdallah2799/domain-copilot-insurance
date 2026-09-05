@@ -22,6 +22,9 @@ public class ToolDefinitionsMapToKernelFunctionsTests
         yield return [new LookupDeclarationsToolExecutor(null!)];
         yield return [new LookupClaimHistoryToolExecutor(null!)];
         yield return [new FinalizeAdjudicationDecisionToolExecutor(null!)];
+        yield return [new ResolvePolicyVersionToolExecutor(null!)];
+        yield return [new SearchKnowledgeBaseToolExecutor(null!)];
+        yield return [new CheckDamageValueRatioToolExecutor()];
     }
 
     [Theory]

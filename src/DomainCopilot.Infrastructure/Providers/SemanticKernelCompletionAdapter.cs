@@ -95,7 +95,9 @@ internal sealed class SemanticKernelCompletionAdapter(string providerName, strin
         }
     }
 
-    private static ChatHistory BuildHistory(CompletionRequest request)
+    // Internal (not private) specifically so Contract.Tests can verify the tool-call round-trip
+    // shape directly — the actual translation logic, not just "some SK call didn't throw."
+    internal static ChatHistory BuildHistory(CompletionRequest request)
     {
         var history = new ChatHistory();
         foreach (var message in request.Messages)
@@ -107,6 +109,20 @@ internal sealed class SemanticKernelCompletionAdapter(string providerName, strin
                     break;
                 case ChatRole.User:
                     history.AddUserMessage(message.Content);
+                    break;
+                case ChatRole.Assistant when message.ToolCalls is { Count: > 0 } toolCalls:
+                    var items = new ChatMessageContentItemCollection();
+                    if (!string.IsNullOrEmpty(message.Content))
+                    {
+                        items.Add(new TextContent(message.Content));
+                    }
+
+                    foreach (var toolCall in toolCalls)
+                    {
+                        items.Add(new FunctionCallContent(toolCall.Name, id: toolCall.Id, arguments: DeserializeArguments(toolCall.ArgumentsJson)));
+                    }
+
+                    history.Add(new ChatMessageContent(AuthorRole.Assistant, items));
                     break;
                 case ChatRole.Assistant:
                     history.AddAssistantMessage(message.Content);
@@ -152,6 +168,15 @@ internal sealed class SemanticKernelCompletionAdapter(string providerName, strin
 
         var plain = arguments.ToDictionary(kv => kv.Key, kv => kv.Value);
         return JsonSerializer.Serialize(plain);
+    }
+
+    /// <summary>Reconstructs a <see cref="KernelArguments"/> from a tool call's JSON arguments,
+    /// purely to represent the call faithfully in chat history — the actual tool execution runs
+    /// against the raw JSON via <c>IToolExecutor</c>, never against this reconstruction.</summary>
+    private static KernelArguments DeserializeArguments(string argumentsJson)
+    {
+        var parsed = JsonSerializer.Deserialize<Dictionary<string, object?>>(argumentsJson) ?? [];
+        return new KernelArguments(parsed);
     }
 
     private static TokenUsage ExtractUsage(IReadOnlyDictionary<string, object?>? metadata)
