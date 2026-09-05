@@ -33,12 +33,25 @@ public sealed class AdjudicationOrchestrator(
     private static readonly TimeSpan StepTimeout = TimeSpan.FromMinutes(20);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public async Task<AdjudicationCase> RunAsync(StartAdjudicationRequest request, CancellationToken cancellationToken = default)
+    /// <summary>Creates and persists the case only -- the FR-6 "watch it start immediately" half of
+    /// starting a run. Split from <see cref="RunPipelineAsync"/> specifically so a caller (the API
+    /// controller) can hand the client a real case id to watch over SSE before committing to the
+    /// full multi-minute pipeline run, rather than making the client wait for the whole thing before
+    /// it even knows the run exists.</summary>
+    public async Task<AdjudicationCase> StartCaseAsync(StartAdjudicationRequest request, CancellationToken cancellationToken = default)
     {
         var adjudicationCase = AdjudicationCase.Create(request.ClaimNumber, request.PolicyNumber, request.DateOfLoss);
         await caseRepository.AddAsync(adjudicationCase, cancellationToken);
         await caseRepository.SaveChangesAsync(cancellationToken);
+        return adjudicationCase;
+    }
 
+    /// <summary>Runs the four-agent pipeline against an already-created case (from <see
+    /// cref="StartCaseAsync"/>). This is the same sequence <c>RunAsync</c> used to run inline
+    /// end-to-end before FR-6's live-progress requirement split it in two -- unchanged in behavior,
+    /// only in how a caller reaches it.</summary>
+    public async Task RunPipelineAsync(AdjudicationCase adjudicationCase, StartAdjudicationRequest request, CancellationToken cancellationToken = default)
+    {
         adjudicationCase.BeginCoverageMatching();
         await caseRepository.SaveChangesAsync(cancellationToken);
 
@@ -47,7 +60,7 @@ public sealed class AdjudicationOrchestrator(
             ct => coverageMatcher.RunAsync(request.ClaimNumber, request.PolicyNumber, request.DateOfLoss, request.LossType, ct));
         if (coverageMatch is null)
         {
-            return adjudicationCase;
+            return;
         }
 
         adjudicationCase.RecordCoverageMatch(JsonSerializer.Serialize(coverageMatch, JsonOptions));
@@ -60,7 +73,7 @@ public sealed class AdjudicationOrchestrator(
                 request.EstimatedDamage, request.ApproximateVehicleValue, coverageMatch, ct));
         if (anomalyFindings is null)
         {
-            return adjudicationCase;
+            return;
         }
 
         adjudicationCase.RecordAnomalyFindings(JsonSerializer.Serialize(anomalyFindings, JsonOptions));
@@ -71,7 +84,7 @@ public sealed class AdjudicationOrchestrator(
             ct => exclusionAnalyst.RunAsync(coverageMatch, anomalyFindings, ct));
         if (exclusionAnalysis is null)
         {
-            return adjudicationCase;
+            return;
         }
 
         adjudicationCase.RecordExclusionAnalysis(JsonSerializer.Serialize(exclusionAnalysis, JsonOptions));
@@ -82,13 +95,13 @@ public sealed class AdjudicationOrchestrator(
             ct => adjudicationDrafter.RunAsync(coverageMatch, anomalyFindings, exclusionAnalysis, ct));
         if (recommendation is null)
         {
-            return adjudicationCase;
+            return;
         }
 
         adjudicationCase.RecordRecommendation(JsonSerializer.Serialize(recommendation, JsonOptions));
         await caseRepository.SaveChangesAsync(cancellationToken);
 
-        return adjudicationCase;
+        return;
     }
 
     /// <summary>Runs one stage under a per-step timeout; on failure, degrades to a plain-RAG summary

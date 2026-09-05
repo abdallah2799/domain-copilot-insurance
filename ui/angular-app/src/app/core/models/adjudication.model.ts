@@ -14,6 +14,25 @@ export type AdjudicationRunStatus =
   | 'EditedAndApproved'
   | 'Failed';
 
+export const TERMINAL_RUN_STATUSES: ReadonlySet<AdjudicationRunStatus> = new Set([
+  'Approved',
+  'Rejected',
+  'EditedAndApproved',
+  'Failed',
+]);
+
+// Mirrors AdjudicationController's PipelineInProgressStatuses: once a run leaves this set (either
+// a hard-terminal status, or AwaitingApproval, where the four-agent pipeline has nothing further
+// to report), AdjudicationService.streamRun stops the connection itself rather than waiting for
+// the server to end the response and risking EventSource's default auto-reconnect kicking in.
+export const PIPELINE_IN_PROGRESS_STATUSES: ReadonlySet<AdjudicationRunStatus> = new Set([
+  'Pending',
+  'MatchingCoverage',
+  'DetectingAnomalies',
+  'AnalyzingExclusions',
+  'Drafting',
+]);
+
 export interface AdjudicationCase {
   id: string;
   claimNumber: string;
