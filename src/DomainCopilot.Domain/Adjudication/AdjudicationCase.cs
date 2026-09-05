@@ -28,6 +28,14 @@ public sealed class AdjudicationCase
     public string? AdjusterComments { get; private set; }
     public string? FailureReason { get; private set; }
 
+    /// <summary>FR-8's object-ownership check: the username of whoever started this run. An
+    /// Analyst may only see/act on cases they started themselves; an Adjuster (a different actor by
+    /// design, per D2's approval gate) can see and approve any case regardless of who started it.
+    /// Existing pre-FR-8 rows persist with an empty string here (see the migration) rather than
+    /// failing to load — this invariant is enforced going forward by <see cref="Create"/>, not
+    /// retroactively on historical data.</summary>
+    public string CreatedByUsername { get; private set; } = string.Empty;
+
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
@@ -36,7 +44,7 @@ public sealed class AdjudicationCase
         // EF Core materialization only — public construction goes through Create.
     }
 
-    public static AdjudicationCase Create(string claimNumber, string policyNumber, DateOnly dateOfLoss)
+    public static AdjudicationCase Create(string claimNumber, string policyNumber, DateOnly dateOfLoss, string createdByUsername)
     {
         if (string.IsNullOrWhiteSpace(claimNumber))
         {
@@ -48,6 +56,11 @@ public sealed class AdjudicationCase
             throw new ArgumentException("An adjudication case must have a policy number.", nameof(policyNumber));
         }
 
+        if (string.IsNullOrWhiteSpace(createdByUsername))
+        {
+            throw new ArgumentException("An adjudication case must record who started it.", nameof(createdByUsername));
+        }
+
         var now = DateTimeOffset.UtcNow;
         return new AdjudicationCase
         {
@@ -55,6 +68,7 @@ public sealed class AdjudicationCase
             ClaimNumber = claimNumber,
             PolicyNumber = policyNumber,
             DateOfLoss = dateOfLoss,
+            CreatedByUsername = createdByUsername,
             Status = AdjudicationRunStatus.Pending,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,

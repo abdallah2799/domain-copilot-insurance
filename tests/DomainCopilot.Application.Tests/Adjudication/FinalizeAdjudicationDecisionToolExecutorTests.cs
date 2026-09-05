@@ -7,7 +7,7 @@ public class FinalizeAdjudicationDecisionToolExecutorTests
 {
     private static async Task<(FakeAdjudicationCaseRepository Repo, AdjudicationCase Case)> AwaitingApprovalCaseAsync()
     {
-        var acase = AdjudicationCase.Create("CLM-2025-04417", "MMIC-PAP-100234", new DateOnly(2025, 8, 3));
+        var acase = AdjudicationCase.Create("CLM-2025-04417", "MMIC-PAP-100234", new DateOnly(2025, 8, 3), "test-user");
         acase.BeginCoverageMatching();
         acase.RecordCoverageMatch("{}");
         acase.RecordAnomalyFindings("{}");
@@ -88,7 +88,7 @@ public class FinalizeAdjudicationDecisionToolExecutorTests
     [Fact]
     public async Task Execute_CaseNotYetAwaitingApproval_Fails()
     {
-        var acase = AdjudicationCase.Create("CLM-2025-04417", "MMIC-PAP-100234", new DateOnly(2025, 8, 3));
+        var acase = AdjudicationCase.Create("CLM-2025-04417", "MMIC-PAP-100234", new DateOnly(2025, 8, 3), "test-user");
         var repo = new FakeAdjudicationCaseRepository();
         await repo.AddAsync(acase);
         var executor = new FinalizeAdjudicationDecisionToolExecutor(repo);

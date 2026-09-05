@@ -1,40 +1,28 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { firstValueFrom, toArray } from 'rxjs';
 import { vi } from 'vitest';
 
 import { AdjudicationService } from './adjudication.service';
 import { AdjudicationCase } from '../models/adjudication.model';
 
-// jsdom (this test environment) doesn't implement EventSource -- a small fake standing in for the
-// one piece AdjudicationService.streamRun actually uses (addEventListener('update', ...), onerror,
-// close()) is simpler and more reliable across environments than trying to polyfill the real thing.
-class FakeEventSource {
-  static instances: FakeEventSource[] = [];
+function sseBytes(...lines: string[]): Uint8Array {
+  return new TextEncoder().encode(lines.join(''));
+}
 
-  url: string;
-  closed = false;
-  onerror: (() => void) | null = null;
-  private listeners: Record<string, ((event: { data: string }) => void)[]> = {};
-
-  constructor(url: string) {
-    this.url = url;
-    FakeEventSource.instances.push(this);
-  }
-
-  addEventListener(type: string, callback: (event: { data: string }) => void): void {
-    (this.listeners[type] ??= []).push(callback);
-  }
-
-  close(): void {
-    this.closed = true;
-  }
-
-  emit(type: string, data: unknown): void {
-    for (const callback of this.listeners[type] ?? []) {
-      callback({ data: JSON.stringify(data) });
-    }
-  }
+// See RetrievalService.askStream's own spec for why this fakes only `reader.read()`'s contract
+// rather than a real ReadableStream (inconsistent across the Angular test builder's environments).
+function fakeReader(chunks: Uint8Array[]) {
+  let index = 0;
+  return {
+    read: vi.fn(async () => {
+      if (index < chunks.length) {
+        return { done: false, value: chunks[index++] };
+      }
+      return { done: true, value: undefined };
+    }),
+  };
 }
 
 function fakeCase(overrides: Partial<AdjudicationCase>): AdjudicationCase {
@@ -52,18 +40,21 @@ function fakeCase(overrides: Partial<AdjudicationCase>): AdjudicationCase {
     approvedAtUtc: null,
     adjusterComments: null,
     failureReason: null,
+    createdByUsername: 'analyst',
     createdAtUtc: '2026-09-05T00:00:00Z',
     updatedAtUtc: '2026-09-05T00:00:00Z',
     ...overrides,
   };
 }
 
+function updateEvent(run: AdjudicationCase): Uint8Array {
+  return sseBytes('event: update\n', `data: ${JSON.stringify(run)}\n\n`);
+}
+
 describe('AdjudicationService.streamRun', () => {
   let service: AdjudicationService;
 
   beforeEach(() => {
-    FakeEventSource.instances = [];
-    vi.stubGlobal('EventSource', FakeEventSource);
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
@@ -74,55 +65,59 @@ describe('AdjudicationService.streamRun', () => {
     vi.unstubAllGlobals();
   });
 
-  it('emits each update and completes once the pipeline reaches a terminal status', () => {
-    const emitted: AdjudicationCase[] = [];
-    let completed = false;
-
-    service.streamRun('case-1').subscribe({
-      next: (run) => emitted.push(run),
-      complete: () => (completed = true),
-    });
-
-    const source = FakeEventSource.instances[0];
-    source.emit('update', fakeCase({ status: 'MatchingCoverage' }));
-    source.emit('update', fakeCase({ status: 'DetectingAnomalies' }));
-    source.emit('update', fakeCase({ status: 'Failed', failureReason: 'boom' }));
-
-    expect(emitted.map((c) => c.status)).toEqual([
-      'MatchingCoverage',
-      'DetectingAnomalies',
-      'Failed',
+  it('emits each update and completes once the pipeline reaches a terminal status', async () => {
+    const reader = fakeReader([
+      updateEvent(fakeCase({ status: 'MatchingCoverage' })),
+      updateEvent(fakeCase({ status: 'DetectingAnomalies' })),
+      updateEvent(fakeCase({ status: 'Failed', failureReason: 'boom' })),
     ]);
-    expect(completed).toBe(true);
-    expect(source.closed).toBe(true);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, status: 200, body: { getReader: () => reader } }),
+    );
+
+    const emitted = await firstValueFrom(service.streamRun('case-1').pipe(toArray<AdjudicationCase>()));
+
+    expect(emitted.map((c) => c.status)).toEqual(['MatchingCoverage', 'DetectingAnomalies', 'Failed']);
   });
 
-  it('closes itself at AwaitingApproval too, even though the case is not yet terminal', () => {
-    let completed = false;
-    service.streamRun('case-1').subscribe({ complete: () => (completed = true) });
+  it('closes itself at AwaitingApproval too, even though the case is not yet terminal', async () => {
+    const reader = fakeReader([updateEvent(fakeCase({ status: 'AwaitingApproval' }))]);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, status: 200, body: { getReader: () => reader } }),
+    );
 
-    FakeEventSource.instances[0].emit('update', fakeCase({ status: 'AwaitingApproval' }));
+    const emitted = await firstValueFrom(service.streamRun('case-1').pipe(toArray<AdjudicationCase>()));
 
-    expect(completed).toBe(true);
-    expect(FakeEventSource.instances[0].closed).toBe(true);
+    expect(emitted.map((c) => c.status)).toEqual(['AwaitingApproval']);
   });
 
-  it('surfaces a genuine connection error rather than retrying silently', () => {
+  it('surfaces an HTTP failure rather than silently completing', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401, body: null }));
+
     let error: unknown;
     service.streamRun('case-1').subscribe({ error: (err) => (error = err) });
-
-    FakeEventSource.instances[0].onerror?.();
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(error).toBeInstanceOf(Error);
-    expect(FakeEventSource.instances[0].closed).toBe(true);
   });
 
-  it('closes the EventSource on unsubscribe before any terminal update arrives', () => {
-    const subscription = service.streamRun('case-1').subscribe();
-    const source = FakeEventSource.instances[0];
+  it('aborts the underlying fetch when unsubscribed -- real cancellation, not just stopping local updates', async () => {
+    let capturedSignal: AbortSignal | undefined;
+    const neverResolvingReader = { read: vi.fn(() => new Promise(() => {})) };
+    const fetchMock = vi.fn((_url: string, init: RequestInit) => {
+      capturedSignal = init.signal as AbortSignal;
+      return Promise.resolve({ ok: true, status: 200, body: { getReader: () => neverResolvingReader } });
+    });
+    vi.stubGlobal('fetch', fetchMock);
 
-    expect(source.closed).toBe(false);
+    const subscription = service.streamRun('case-1').subscribe();
+    await Promise.resolve();
+
+    expect(capturedSignal?.aborted).toBe(false);
     subscription.unsubscribe();
-    expect(source.closed).toBe(true);
+    expect(capturedSignal?.aborted).toBe(true);
   });
 });

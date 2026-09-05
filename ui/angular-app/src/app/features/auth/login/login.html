@@ -1,0 +1,33 @@
+<div class="login">
+  <h2>Sign in</h2>
+
+  <form (ngSubmit)="submit()">
+    <label>
+      Username
+      <input
+        type="text"
+        [ngModel]="username()"
+        (ngModelChange)="username.set($event)"
+        name="username"
+        autocomplete="username"
+      />
+    </label>
+    <label>
+      Password
+      <input
+        type="password"
+        [ngModel]="password()"
+        (ngModelChange)="password.set($event)"
+        name="password"
+        autocomplete="current-password"
+      />
+    </label>
+    <button type="submit" [disabled]="submitting() || !username().trim() || !password()">
+      {{ submitting() ? 'Signing in…' : 'Sign in' }}
+    </button>
+  </form>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+</div>

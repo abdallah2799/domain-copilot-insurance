@@ -1,12 +1,18 @@
 <header class="app-header">
   <h1><a routerLink="/runs">Domain Copilot</a></h1>
   <p>Insurance claims adjudication copilot</p>
-  <nav>
-    <a routerLink="/ingest" routerLinkActive="active">Ingest</a>
-    <a routerLink="/ask" routerLinkActive="active">Ask</a>
-    <a routerLink="/ocr" routerLinkActive="active">OCR</a>
-    <a routerLink="/runs" routerLinkActive="active">Adjudication runs</a>
-  </nav>
+  @if (authService.isAuthenticated()) {
+    <nav>
+      <a routerLink="/ingest" routerLinkActive="active">Ingest</a>
+      <a routerLink="/ask" routerLinkActive="active">Ask</a>
+      <a routerLink="/ocr" routerLinkActive="active">OCR</a>
+      <a routerLink="/runs" routerLinkActive="active">Adjudication runs</a>
+    </nav>
+    <div class="session">
+      <span>{{ authService.session()?.username }} ({{ authService.session()?.role }})</span>
+      <button type="button" (click)="logout()">Sign out</button>
+    </div>
+  }
 </header>
 <main>
   <router-outlet />

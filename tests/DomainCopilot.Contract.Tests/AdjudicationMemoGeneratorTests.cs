@@ -26,7 +26,7 @@ public class AdjudicationMemoGeneratorTests
     [Fact]
     public void Generate_ProducesAValidPdf()
     {
-        var adjudicationCase = AdjudicationCase.Create("CLM-1", "POL-1", new DateOnly(2025, 8, 3));
+        var adjudicationCase = AdjudicationCase.Create("CLM-1", "POL-1", new DateOnly(2025, 8, 3), "test-user");
         var bytes = _generator.Generate(new AdjudicationMemoData(adjudicationCase, null, null, null, null));
 
         Assert.True(bytes.Length > 100);
@@ -36,7 +36,7 @@ public class AdjudicationMemoGeneratorTests
     [Fact]
     public void Generate_NoStagesCompleted_RendersEveryStageAsNotYetCompleted()
     {
-        var adjudicationCase = AdjudicationCase.Create("CLM-2025-99999", "POL-1", new DateOnly(2025, 8, 3));
+        var adjudicationCase = AdjudicationCase.Create("CLM-2025-99999", "POL-1", new DateOnly(2025, 8, 3), "test-user");
         var text = ExtractText(_generator.Generate(new AdjudicationMemoData(adjudicationCase, null, null, null, null)));
 
         Assert.Contains("CLM-2025-99999", text);
@@ -46,7 +46,7 @@ public class AdjudicationMemoGeneratorTests
     [Fact]
     public void Generate_FullyProgressedAndApprovedCase_RendersAllSectionsAndTheDecision()
     {
-        var adjudicationCase = AdjudicationCase.Create("CLM-2025-11111", "POL-77", new DateOnly(2025, 8, 3));
+        var adjudicationCase = AdjudicationCase.Create("CLM-2025-11111", "POL-77", new DateOnly(2025, 8, 3), "test-user");
         adjudicationCase.BeginCoverageMatching();
 
         var coverageMatch = new CoverageMatchResult(
@@ -83,7 +83,7 @@ public class AdjudicationMemoGeneratorTests
     [Fact]
     public void Generate_DegradedFailedCase_RendersTheFailureReason()
     {
-        var adjudicationCase = AdjudicationCase.Create("CLM-2025-22222", "POL-1", new DateOnly(2025, 8, 3));
+        var adjudicationCase = AdjudicationCase.Create("CLM-2025-22222", "POL-1", new DateOnly(2025, 8, 3), "test-user");
         adjudicationCase.BeginCoverageMatching();
         adjudicationCase.MarkFailed("[DEGRADED — AnomalyAnalyst could not complete (exceeded its step timeout).]");
 

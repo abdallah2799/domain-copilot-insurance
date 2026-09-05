@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AdjudicationService } from '../../../core/services/adjudication.service';
+import { AuthService } from '../../../core/services/auth.service';
 import {
   AdjudicationCase,
   AnomalyFindings,
@@ -30,6 +31,7 @@ export class RunDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly adjudicationService = inject(AdjudicationService);
   private readonly destroyRef = inject(DestroyRef);
+  readonly authService = inject(AuthService);
 
   readonly stageOrder = STAGE_ORDER;
   readonly run = signal<AdjudicationCase | null>(null);
@@ -37,7 +39,6 @@ export class RunDetail implements OnInit {
   readonly actionError = signal<string | null>(null);
   readonly actionInProgress = signal(false);
 
-  readonly actorName = signal('adjuster@meridianmutual.example');
   readonly rejectComments = signal('');
   readonly editedRecommendationJson = signal('');
   readonly editComments = signal('');
@@ -79,7 +80,7 @@ export class RunDetail implements OnInit {
 
     this.actionInProgress.set(true);
     this.actionError.set(null);
-    this.adjudicationService.approve(run.id, { actor: this.actorName() }).subscribe({
+    this.adjudicationService.approve(run.id).subscribe({
       next: () => this.reloadAfterAction(run.id),
       error: (err) => this.handleActionError(err),
     });
@@ -96,7 +97,7 @@ export class RunDetail implements OnInit {
     this.actionInProgress.set(true);
     this.actionError.set(null);
     this.adjudicationService
-      .reject(run.id, { actor: this.actorName(), comments: this.rejectComments() })
+      .reject(run.id, { comments: this.rejectComments() })
       .subscribe({
         next: () => this.reloadAfterAction(run.id),
         error: (err) => this.handleActionError(err),
@@ -117,7 +118,6 @@ export class RunDetail implements OnInit {
     this.actionError.set(null);
     this.adjudicationService
       .editAndApprove(run.id, {
-        actor: this.actorName(),
         comments: this.editComments(),
         editedRecommendationJson: this.editedRecommendationJson(),
       })

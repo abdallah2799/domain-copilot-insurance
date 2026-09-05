@@ -39,7 +39,7 @@ public sealed class AdjudicationCaseRepositoryTests : IAsyncLifetime
     public async Task AddAndSave_ThenFindById_RoundTripsStateAndJsonBlobs()
     {
         var repo = new AdjudicationCaseRepository(_dbContext);
-        var acase = AdjudicationCase.Create("CLM-2025-04417", "MMIC-PAP-100234", new DateOnly(2025, 8, 3));
+        var acase = AdjudicationCase.Create("CLM-2025-04417", "MMIC-PAP-100234", new DateOnly(2025, 8, 3), "test-user");
         acase.BeginCoverageMatching();
         acase.RecordCoverageMatch("""{"formVersion":"PAP-2024-STD"}""");
 
@@ -64,11 +64,28 @@ public sealed class AdjudicationCaseRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ListByCreatedBy_ReturnsOnlyThatUsersOwnCases()
+    {
+        var repo = new AdjudicationCaseRepository(_dbContext);
+        var analystOneCase = AdjudicationCase.Create("CLM-OWNER-1", "MMIC-PAP-1", new DateOnly(2025, 8, 3), "analyst.one");
+        var analystTwoCase = AdjudicationCase.Create("CLM-OWNER-2", "MMIC-PAP-1", new DateOnly(2025, 8, 3), "analyst.two");
+
+        await repo.AddAsync(analystOneCase);
+        await repo.AddAsync(analystTwoCase);
+        await repo.SaveChangesAsync();
+
+        var analystOnesCases = await repo.ListByCreatedByAsync("analyst.one");
+
+        Assert.Single(analystOnesCases);
+        Assert.Equal("CLM-OWNER-1", analystOnesCases[0].ClaimNumber);
+    }
+
+    [Fact]
     public async Task SameClaimNumber_CanHaveMultipleRuns_NotUniqueConstrained()
     {
         var repo = new AdjudicationCaseRepository(_dbContext);
-        var firstRun = AdjudicationCase.Create("CLM-REOPEN-1", "MMIC-PAP-100234", new DateOnly(2025, 8, 3));
-        var secondRun = AdjudicationCase.Create("CLM-REOPEN-1", "MMIC-PAP-100234", new DateOnly(2025, 8, 3));
+        var firstRun = AdjudicationCase.Create("CLM-REOPEN-1", "MMIC-PAP-100234", new DateOnly(2025, 8, 3), "test-user");
+        var secondRun = AdjudicationCase.Create("CLM-REOPEN-1", "MMIC-PAP-100234", new DateOnly(2025, 8, 3), "test-user");
 
         await repo.AddAsync(firstRun);
         await repo.AddAsync(secondRun);
@@ -82,7 +99,7 @@ public sealed class AdjudicationCaseRepositoryTests : IAsyncLifetime
     public async Task FullPipelineToApproval_PersistsAcrossReload()
     {
         var repo = new AdjudicationCaseRepository(_dbContext);
-        var acase = AdjudicationCase.Create("CLM-2025-04999", "MMIC-PAP-999", new DateOnly(2025, 8, 3));
+        var acase = AdjudicationCase.Create("CLM-2025-04999", "MMIC-PAP-999", new DateOnly(2025, 8, 3), "test-user");
         acase.BeginCoverageMatching();
         acase.RecordCoverageMatch("{}");
         acase.RecordAnomalyFindings("{}");

@@ -12,6 +12,12 @@ public sealed class AdjudicationCaseRepository(DomainCopilotDbContext dbContext)
     public async Task<IReadOnlyList<AdjudicationCase>> ListAllAsync(CancellationToken cancellationToken = default) =>
         await dbContext.AdjudicationCases.OrderByDescending(a => a.CreatedAtUtc).ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<AdjudicationCase>> ListByCreatedByAsync(string createdByUsername, CancellationToken cancellationToken = default) =>
+        await dbContext.AdjudicationCases
+            .Where(a => a.CreatedByUsername == createdByUsername)
+            .OrderByDescending(a => a.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
     public Task AddAsync(AdjudicationCase adjudicationCase, CancellationToken cancellationToken = default)
     {
         dbContext.AdjudicationCases.Add(adjudicationCase);
