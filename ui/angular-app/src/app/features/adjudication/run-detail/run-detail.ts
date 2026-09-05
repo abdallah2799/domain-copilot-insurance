@@ -145,4 +145,8 @@ export class RunDetail implements OnInit {
       return null;
     }
   }
+
+  memoUrl(id: string): string {
+    return this.adjudicationService.memoUrl(id);
+  }
 }

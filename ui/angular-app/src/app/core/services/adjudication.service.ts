@@ -26,6 +26,13 @@ export class AdjudicationService {
     return this.http.get<AdjudicationCase>(`${this.baseUrl}/runs/${id}`);
   }
 
+  // T6's document-out half (ADR-0011): a plain URL, not an HttpClient call -- the endpoint
+  // returns a real PDF file, and a browser handles a direct GET to a file URL (download/open in a
+  // new tab) natively, no fetch/blob handling needed.
+  memoUrl(id: string): string {
+    return `${this.baseUrl}/runs/${id}/memo`;
+  }
+
   // The API now creates the case and returns as soon as it exists (FR-6: "watch it start
   // immediately"), running the four-agent pipeline in the background rather than making this call
   // wait for the whole thing -- watch actual progress via streamRun, not by waiting on this.
