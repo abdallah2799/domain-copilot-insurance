@@ -29,11 +29,19 @@ public sealed class CheckDamageValueRatioToolExecutor : IToolExecutor
             using var doc = JsonDocument.Parse(argumentsJson);
             var root = doc.RootElement;
 
-            var exceedsThreshold = DamageToValueRatioChecker.ExceedsThreshold(
-                ToolArguments.RequireDecimal(root, "estimatedDamage"),
-                ToolArguments.RequireDecimal(root, "approximateVehicleValue"));
+            var estimatedDamage = ToolArguments.RequireDecimal(root, "estimatedDamage");
+            var approximateVehicleValue = ToolArguments.RequireDecimal(root, "approximateVehicleValue");
+            var exceedsThreshold = DamageToValueRatioChecker.ExceedsThreshold(estimatedDamage, approximateVehicleValue);
+            var ratioPercent = Math.Round(estimatedDamage / approximateVehicleValue * 100m, 1);
 
-            return Task.FromResult(ToolExecutionResult.Ok(JsonSerializer.Serialize(new { exceedsThreshold })));
+            return Task.FromResult(ToolExecutionResult.Ok(JsonSerializer.Serialize(new
+            {
+                exceedsThreshold,
+                ratioPercent,
+                thresholdPercent = 60,
+                guidance = "This fully answers the damage-to-value indicator for this claim. Do not call check_damage_value_ratio again. " +
+                    "If you have not yet called lookup_claim_history, call it now; otherwise you have every indicator you need — respond with the final JSON answer immediately.",
+            })));
         }
         catch (JsonException ex)
         {

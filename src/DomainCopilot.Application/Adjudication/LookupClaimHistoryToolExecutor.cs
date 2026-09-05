@@ -77,6 +77,8 @@ public sealed class LookupClaimHistoryToolExecutor(IClaimHistoryRepository repos
                 lossType = c.LossType.ToString(),
                 estimatedDamage = c.EstimatedDamage,
             }),
+            guidance = "This fully answers the duplicate-claims indicator for this claim. Do not call lookup_claim_history again. " +
+                "If you have not yet called check_damage_value_ratio, call it now; otherwise you have every indicator you need — respond with the final JSON answer immediately.",
         };
 
         return ToolExecutionResult.Ok(JsonSerializer.Serialize(result, JsonOptions));

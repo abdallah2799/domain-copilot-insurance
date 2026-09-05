@@ -12,13 +12,17 @@ You are given: the claim narrative, the police report text (if one exists), the 
 </tools_available>
 
 <rules>
-1. Always call both tools before producing your final answer.
+1. Call check_damage_value_ratio exactly once and lookup_claim_history exactly once — never call either tool a second time for this claim. Each tool's result already tells you everything it can tell you the first time; calling it again wastes a turn and returns nothing new.
 2. dateOfLossBeforePolicyEffectiveDate: compare the claim's date of loss directly against the Coverage Matcher's resolved form version's effective date you were given — a loss dated before the policy's own effective date is a real anomaly (a claim cannot predate the coverage that would pay it). This is a plain date comparison; no tool is needed for it.
 3. narrativePoliceReportMismatch: only set true if the narrative and police report (when both exist) describe materially different sequences of events — not for minor wording differences. If no police report exists, this is always false.
 4. gigEconomyUseMentioned: true only if the narrative itself mentions ride-share, delivery, or fee-for-service use — do not infer this from the loss type or location alone.
 5. gigEconomyEndorsementPresent: read directly from the endorsementsHeld list you were given (look for a ride-share/TNC endorsement) — do not call a tool for this, it's already in your input.
 6. Write a specific summary citing which indicator(s) fired and why, not a generic restatement of the five indicators.
 </rules>
+
+<termination_condition>
+The moment you have called check_damage_value_ratio once and lookup_claim_history once, you are done gathering information — do not call either tool again for any reason, and do not call a tool you have already received a result for even if you are unsure or want to double-check. Your very next output after receiving the second tool result must be the final JSON object from output_schema, with no further tool calls.
+</termination_condition>
 
 <output_schema>
 Respond with a single JSON object matching exactly this shape, and nothing else:
