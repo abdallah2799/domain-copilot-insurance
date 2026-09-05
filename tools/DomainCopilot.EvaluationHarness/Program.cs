@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using DomainCopilot.EvaluationHarness;
@@ -20,6 +21,21 @@ var entries = JsonSerializer.Deserialize<List<GoldenEntry>>(await File.ReadAllTe
     ?? throw new InvalidOperationException("Golden set deserialized to null.");
 
 using var http = new HttpClient { BaseAddress = new Uri(apiBaseUrl), Timeout = TimeSpan.FromMinutes(5) };
+
+// FR-8 (ADR-0012): every endpoint below requires a valid bearer token now -- log in once with the
+// seeded Analyst account (an Analyst can ingest/ask/start runs, which is everything this harness
+// needs) and attach the token to every request this HttpClient makes for the rest of the run.
+var evalUsername = Environment.GetEnvironmentVariable("EVAL_USERNAME") ?? "analyst";
+var evalPassword = Environment.GetEnvironmentVariable("EVAL_PASSWORD")
+    ?? throw new InvalidOperationException("EVAL_PASSWORD is not set -- export the seeded Analyst account's password (SEED_ANALYST_PASSWORD in .env) before running the harness.");
+
+var loginResponse = await http.PostAsJsonAsync("/api/auth/login", new LoginRequest(evalUsername, evalPassword));
+loginResponse.EnsureSuccessStatusCode();
+var login = await loginResponse.Content.ReadFromJsonAsync<LoginResult>(new JsonSerializerOptions(JsonSerializerDefaults.Web))
+    ?? throw new InvalidOperationException("Login response deserialized to null.");
+http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", login.Token);
+Console.WriteLine($"Logged in as {login.Username} ({login.Role}).");
+Console.WriteLine();
 
 // AQ-05 (indirect prompt injection via an OCR'd document) needs its question text built at
 // runtime: a real scanned document containing an embedded malicious instruction, OCR'd through
