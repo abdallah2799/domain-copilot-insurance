@@ -81,6 +81,15 @@ dd {
   background: #f8d7da;
 }
 
+.status-Completed {
+  background: #d4edda;
+}
+
+.status-Processing,
+.status-Pending {
+  background: #e2e3ff;
+}
+
 form label {
   display: block;
   margin-bottom: 0.75rem;

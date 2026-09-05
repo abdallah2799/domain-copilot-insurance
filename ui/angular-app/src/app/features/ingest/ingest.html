@@ -1,0 +1,57 @@
+<div class="ingest">
+  <header>
+    <h2>Knowledge corpus ingestion</h2>
+    <div class="actions">
+      <button type="button" (click)="refresh()">Refresh</button>
+      <button type="button" [disabled]="ingesting()" (click)="ingest()">
+        {{ ingesting() ? 'Ingesting…' : 'Ingest knowledge corpus' }}
+      </button>
+    </div>
+  </header>
+
+  @if (lastIngestSummary()) {
+    <p class="summary">{{ lastIngestSummary() }}</p>
+  }
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else if (documents().length === 0) {
+    <p>No documents ingested yet.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Format</th>
+          <th>Form version</th>
+          <th>Status</th>
+          <th>Chunks</th>
+          <th>Ingested</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (doc of documents(); track doc.id) {
+          <tr [class]="'status-' + doc.status">
+            <td>{{ doc.title }}</td>
+            <td>{{ doc.category }}</td>
+            <td>{{ doc.format }}</td>
+            <td>{{ doc.formVersion ?? '—' }}</td>
+            <td>
+              {{ doc.status }}
+              @if (doc.status === 'Failed' && doc.errorMessage) {
+                <span class="error"> — {{ doc.errorMessage }}</span>
+              }
+            </td>
+            <td>{{ doc.chunkCount }}</td>
+            <td>{{ doc.ingestedAtUtc ? (doc.ingestedAtUtc | date: 'short') : '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
