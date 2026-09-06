@@ -28,7 +28,14 @@ if (repoRootForEnv is not null)
     var envPath = Path.Combine(repoRootForEnv, ".env");
     if (File.Exists(envPath))
     {
-        DotNetEnv.Env.Load(envPath);
+        // clobberExistingVars: false so a real environment variable beats the file. The default
+        // overwrites, which silently made `.env` the highest-precedence source: setting
+        // Providers__CompletionMode or a different provider key on the command line appeared to
+        // work and was then overwritten before configuration ever read it -- a run started that way
+        // used the file's values while reporting nothing unusual. Treating `.env` as the fallback
+        // for local development, not an override of an explicit environment variable, is both the
+        // conventional semantics and the only way the documented record/replay command works.
+        DotNetEnv.Env.Load(envPath, new DotNetEnv.LoadOptions(clobberExistingVars: false));
     }
 }
 
