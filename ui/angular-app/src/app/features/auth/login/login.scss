@@ -1,0 +1,39 @@
+.login {
+  min-height: calc(100vh - 6rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 24rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-8) var(--space-6);
+
+  h2 {
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    margin: 0 0 var(--space-6);
+    color: var(--color-muted);
+    font-size: 0.85rem;
+  }
+
+  form input {
+    max-width: none;
+  }
+
+  button[type="submit"] {
+    width: 100%;
+    margin-top: var(--space-2);
+  }
+
+  .error {
+    margin-top: var(--space-4);
+  }
+}
