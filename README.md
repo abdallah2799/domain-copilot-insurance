@@ -68,6 +68,25 @@ Two accounts are seeded on first API startup (`DemoUserSeeder`) — no self-serv
 | Analyst | `SEED_ANALYST_USERNAME` (default `analyst`) | `SEED_ANALYST_PASSWORD` — set in your `.env` |
 | Adjuster | `SEED_ADJUSTER_USERNAME` (default `adjuster`) | `SEED_ADJUSTER_PASSWORD` — set in your `.env` |
 
+## Running the workflow without a provider budget (record / replay)
+
+A full four-agent run costs up to ~30 provider requests. OpenRouter's free tier allows **50 per day**, so a live provider affords roughly **two end-to-end runs a day** — not enough to develop against, test in CI, or rehearse a demo.
+
+`Providers__CompletionMode` (ADR-0014) solves that by recording one real run and replaying it as often as you like:
+
+```bash
+# 1. Record once, against the live provider (costs one run's worth of budget).
+#    Every genuine provider response is saved to seed-data/cassettes/adjudication-demo.json.
+Providers__CompletionMode=Record dotnet run --project src/DomainCopilot.Api
+
+# 2. From then on, replay it — instant, offline, deterministic, and free.
+Providers__CompletionMode=Replay dotnet run --project src/DomainCopilot.Api
+```
+
+In `Replay` mode no network call is made at all. A request the cassette doesn't contain fails loudly with the fingerprint that missed, rather than silently falling through to the live provider — so a replayed run is genuinely hermetic. Editing a prompt or changing the claim inputs invalidates the cassette by design; re-record it.
+
+Cassettes hold **real captured provider responses**, never hand-written ones. Replay makes a run repeatable, not fictional. No cassette ships in this repository — record your own with step 1 above, which also creates `seed-data/cassettes/`.
+
 ## Troubleshooting
 
 - **Every request returns 401.** Every endpoint except `POST /api/auth/login` requires a bearer token (FR-8). Log in first; the Angular app attaches the token automatically once you're logged in there.
