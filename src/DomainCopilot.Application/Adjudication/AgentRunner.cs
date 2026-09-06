@@ -38,6 +38,7 @@ public sealed class AgentRunner(ICompletionService completionService, ITokenUsag
         var toolDefinitions = availableTools.Select(t => t.Definition).ToList();
         var messages = new List<ChatMessage> { ChatMessage.System(systemPrompt), ChatMessage.User(userMessage) };
         IReadOnlyList<string> lastRequestedTools = [];
+        var executedTools = new List<ExecutedToolCall>();
 
         for (var iteration = 1; iteration <= maxIterations; iteration++)
         {
@@ -93,11 +94,13 @@ public sealed class AgentRunner(ICompletionService completionService, ITokenUsag
 
                     var syntheticCall = new ToolCall($"recovered-{iteration}", recoveredCall.Name, recoveredCall.ArgumentsJson);
                     messages.Add(ChatMessage.Assistant(completion.Content ?? string.Empty, [syntheticCall]));
-                    messages.Add(ChatMessage.ToolResult(syntheticCall.Id, syntheticCall.Name, await ExecuteToolCallAsync(syntheticCall, toolsByName, agentName, cancellationToken)));
+                    var syntheticResult = await ExecuteToolCallAsync(syntheticCall, toolsByName, agentName, cancellationToken);
+                    executedTools.Add(new ExecutedToolCall(syntheticCall.Name, syntheticResult));
+                    messages.Add(ChatMessage.ToolResult(syntheticCall.Id, syntheticCall.Name, syntheticResult));
                     continue;
                 }
 
-                return ParseFinalOutput<T>(agentName, completion.Content ?? string.Empty, iteration);
+                return ParseFinalOutput<T>(agentName, completion.Content ?? string.Empty, iteration, executedTools);
             }
 
             messages.Add(ChatMessage.Assistant(completion.Content ?? string.Empty, completion.ToolCalls));
@@ -106,7 +109,9 @@ public sealed class AgentRunner(ICompletionService completionService, ITokenUsag
 
             foreach (var toolCall in completion.ToolCalls)
             {
-                messages.Add(ChatMessage.ToolResult(toolCall.Id, toolCall.Name, await ExecuteToolCallAsync(toolCall, toolsByName, agentName, cancellationToken)));
+                var toolResult = await ExecuteToolCallAsync(toolCall, toolsByName, agentName, cancellationToken);
+                executedTools.Add(new ExecutedToolCall(toolCall.Name, toolResult));
+                messages.Add(ChatMessage.ToolResult(toolCall.Id, toolCall.Name, toolResult));
             }
         }
 
@@ -157,12 +162,12 @@ public sealed class AgentRunner(ICompletionService completionService, ITokenUsag
         return await completionService.CompleteAsync(request, cancellationToken);
     }
 
-    private static AgentRunResult<T> ParseFinalOutput<T>(string agentName, string content, int iterationsUsed)
+    private static AgentRunResult<T> ParseFinalOutput<T>(string agentName, string content, int iterationsUsed, IReadOnlyList<ExecutedToolCall> executedTools)
     {
         var stripped = StripCodeFence(content);
         if (TryDeserialize<T>(stripped) is { } direct)
         {
-            return AgentRunResult<T>.Ok(direct, iterationsUsed);
+            return AgentRunResult<T>.Ok(direct, iterationsUsed, executedTools);
         }
 
         // The model sometimes reasons in prose before finally emitting the JSON answer at the very
@@ -173,7 +178,7 @@ public sealed class AgentRunner(ICompletionService completionService, ITokenUsag
         var fallback = FindBalancedJsonObjects(content).LastOrDefault();
         if (fallback is not null && TryDeserialize<T>(fallback) is { } recovered)
         {
-            return AgentRunResult<T>.Ok(recovered, iterationsUsed);
+            return AgentRunResult<T>.Ok(recovered, iterationsUsed, executedTools);
         }
 
         return AgentRunResult<T>.Failed($"{agentName} produced non-conforming JSON output. Raw content: {content}");
