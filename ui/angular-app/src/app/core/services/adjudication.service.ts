@@ -28,11 +28,15 @@ export class AdjudicationService {
     return this.http.get<AdjudicationCase>(`${this.baseUrl}/runs/${id}`);
   }
 
-  // T6's document-out half (ADR-0011): a plain URL, not an HttpClient call -- the endpoint
-  // returns a real PDF file, and a browser handles a direct GET to a file URL (download/open in a
-  // new tab) natively, no fetch/blob handling needed.
-  memoUrl(id: string): string {
-    return `${this.baseUrl}/runs/${id}/memo`;
+  // T6's document-out half (ADR-0011). Used to be a plain URL opened directly in an <a href> --
+  // but FR-8 made this endpoint require a bearer token like every other one, and a browser
+  // navigating straight to a URL (even via target="_blank") can't attach an Authorization header,
+  // so that always 401'd once auth landed (the same reason streamRun moved off EventSource).
+  // Fetching it through HttpClient lets the auth interceptor attach the token, then a Blob object
+  // URL is what actually gets opened -- the browser still renders/downloads a real PDF, just from
+  // a `blob:` URL instead of the API's own.
+  downloadMemo(id: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/runs/${id}/memo`, { responseType: 'blob' });
   }
 
   // The API now creates the case and returns as soon as it exists (FR-6: "watch it start
