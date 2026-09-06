@@ -85,25 +85,43 @@ public static class DependencyInjection
         var openAiOptions = configuration.GetSection(OpenAiOptions.SectionName).Get<OpenAiOptions>() ?? new OpenAiOptions();
         var ollamaOptions = configuration.GetSection(OllamaOptions.SectionName).Get<OllamaOptions>() ?? new OllamaOptions();
         var openRouterOptions = configuration.GetSection(OpenRouterOptions.SectionName).Get<OpenRouterOptions>() ?? new OpenRouterOptions();
+        var cassetteOptions = configuration.GetSection(CassetteOptions.SectionName).Get<CassetteOptions>() ?? new CassetteOptions();
 
         services.AddSingleton(openAiOptions);
         services.AddSingleton(ollamaOptions);
         services.AddSingleton(openRouterOptions);
+        services.AddSingleton(cassetteOptions);
 
         services.AddSingleton<OpenAiCompletionService>();
         services.AddSingleton<OllamaCompletionService>();
         services.AddSingleton<OpenRouterCompletionService>();
         services.AddSingleton<OpenAiEmbeddingService>();
         services.AddSingleton<OllamaEmbeddingService>();
+        services.AddSingleton<ICompletionCassetteStore, FileCompletionCassetteStore>();
 
         // Completions: OpenRouter (hosted, primary) -> Ollama (local, fallback). OpenAI's API no
         // longer has a perpetual free tier; OpenRouter does (see ADR-0003 update), at the cost of a
         // tight free-tier rate limit (20 req/min, 50 req/day without a credit purchase) — which is
         // exactly why the Ollama fallback leg matters here, not just as a formality.
-        services.AddSingleton<ICompletionService>(sp => new FallbackCompletionService(
-            sp.GetRequiredService<OpenRouterCompletionService>(),
-            sp.GetRequiredService<OllamaCompletionService>(),
-            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<FallbackCompletionService>>()));
+        //
+        // CompletionMode (ADR-0014) then wraps that live chain for the record/replay workflow: one
+        // real recorded run replays unlimited times, which is what makes an end-to-end run testable
+        // at all against a 50-request daily budget one run can nearly exhaust by itself.
+        var completionMode = configuration.GetValue("Providers:CompletionMode", CompletionMode.Live);
+        services.AddSingleton<ICompletionService>(sp =>
+        {
+            var live = new FallbackCompletionService(
+                sp.GetRequiredService<OpenRouterCompletionService>(),
+                sp.GetRequiredService<OllamaCompletionService>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<FallbackCompletionService>>());
+
+            return completionMode switch
+            {
+                CompletionMode.Record => new RecordingCompletionService(live, sp.GetRequiredService<ICompletionCassetteStore>()),
+                CompletionMode.Replay => new ReplayCompletionService(sp.GetRequiredService<ICompletionCassetteStore>()),
+                _ => live,
+            };
+        });
 
         // Embeddings: Ollama (local, primary) -> OpenAI (hosted, fallback). OpenRouter has no
         // embeddings endpoint, so it isn't part of this chain at all. Ollama is primary here
