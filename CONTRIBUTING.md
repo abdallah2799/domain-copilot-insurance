@@ -12,4 +12,4 @@ This is an individual technical assessment submission (ITI Instructor Task, vari
 
 ## Local setup
 
-See the Quick Start section of [`README.md`](README.md) once it is populated, and `.env.example` for required environment variables.
+See the [Quick Start](README.md#quick-start) section of `README.md`, and `.env.example` for required environment variables.
