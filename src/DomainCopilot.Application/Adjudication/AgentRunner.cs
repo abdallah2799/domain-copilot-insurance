@@ -93,7 +93,7 @@ public sealed class AgentRunner(ICompletionService completionService, ITokenUsag
 
                     var syntheticCall = new ToolCall($"recovered-{iteration}", recoveredCall.Name, recoveredCall.ArgumentsJson);
                     messages.Add(ChatMessage.Assistant(completion.Content ?? string.Empty, [syntheticCall]));
-                    messages.Add(ChatMessage.ToolResult(syntheticCall.Id, await ExecuteToolCallAsync(syntheticCall, toolsByName, agentName, cancellationToken)));
+                    messages.Add(ChatMessage.ToolResult(syntheticCall.Id, syntheticCall.Name, await ExecuteToolCallAsync(syntheticCall, toolsByName, agentName, cancellationToken)));
                     continue;
                 }
 
@@ -106,7 +106,7 @@ public sealed class AgentRunner(ICompletionService completionService, ITokenUsag
 
             foreach (var toolCall in completion.ToolCalls)
             {
-                messages.Add(ChatMessage.ToolResult(toolCall.Id, await ExecuteToolCallAsync(toolCall, toolsByName, agentName, cancellationToken)));
+                messages.Add(ChatMessage.ToolResult(toolCall.Id, toolCall.Name, await ExecuteToolCallAsync(toolCall, toolsByName, agentName, cancellationToken)));
             }
         }
 
