@@ -126,7 +126,16 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseHttpsRedirection();
+// Skipped in Development: the documented local dev flow (Angular's dev-only CORS policy above)
+// is plain HTTP end to end. Forcing a redirect here would send the browser to the "https" launch
+// profile's port instead, which uses the ASP.NET Core local dev certificate -- untrusted unless
+// `dotnet dev-certs https --trust` has been run on that machine, so a real request would fail with
+// a genuine certificate error instead of just working, for no benefit in a same-machine dev setup.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 
