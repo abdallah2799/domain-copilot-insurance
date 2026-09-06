@@ -52,6 +52,22 @@ export interface AdjudicationCase {
   updatedAtUtc: string;
 }
 
+// Mirrors AdjudicationController.ExtractIntakeFields / Application.Adjudication's
+// ClaimIntakeExtractionResult -- T6's "upload the claim's own paperwork instead of retyping it"
+// half of starting a run.
+export interface ExtractedClaimIntakeFields {
+  claimNumber: string | null;
+  policyNumber: string | null;
+  dateOfLoss: string | null;
+  policeReportNumber: string | null;
+}
+
+export interface ClaimIntakeExtractionResult {
+  combinedText: string;
+  overallConfidencePercent: number;
+  fields: ExtractedClaimIntakeFields;
+}
+
 export interface StartAdjudicationRequest {
   claimNumber: string;
   policyNumber: string;

@@ -22,9 +22,33 @@ public sealed class AdjudicationController(
     IAdjudicationCaseRepository caseRepository,
     FinalizeAdjudicationDecisionToolExecutor finalizeDecision,
     AdjudicationMemoService memoService,
+    ClaimIntakeExtractionService claimIntakeExtractionService,
     IServiceScopeFactory scopeFactory,
     ILogger<AdjudicationController> logger) : ControllerBase
 {
+    private const long MaxIntakeUploadBytes = 20 * 1024 * 1024;
+
+    /// <summary>T6's document-in half of *starting* a run (distinct from <see
+    /// cref="OcrController"/>'s document-tracking upload): OCRs the uploaded claim intake form and
+    /// extracts claim number/policy number/date of loss/police report number so the caller can
+    /// pre-fill <see cref="StartRun"/>'s request instead of retyping them -- the narrative and loss
+    /// type are deliberately not extracted, since those stay the adjuster's own judgment call.</summary>
+    [HttpPost("runs/extract-intake-fields")]
+    [RequestSizeLimit(MaxIntakeUploadBytes)]
+    public async Task<ActionResult<ClaimIntakeExtractionResult>> ExtractIntakeFields([FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file.Length == 0)
+        {
+            return BadRequest("file is required and must not be empty.");
+        }
+
+        using var stream = new MemoryStream();
+        await file.CopyToAsync(stream, cancellationToken);
+
+        var result = await claimIntakeExtractionService.ExtractAsync(stream.ToArray(), cancellationToken);
+        return Ok(result);
+    }
+
     private static readonly HashSet<AdjudicationRunStatus> TerminalStatuses =
     [
         AdjudicationRunStatus.Approved, AdjudicationRunStatus.Rejected,

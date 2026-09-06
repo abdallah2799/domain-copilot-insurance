@@ -153,3 +153,42 @@ describe('AdjudicationService.downloadMemo', () => {
     req.flush(fakePdf);
   });
 });
+
+describe('AdjudicationService.extractIntakeFields', () => {
+  let service: AdjudicationService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(AdjudicationService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => httpMock.verify());
+
+  it('posts the file as multipart form data and returns the extracted fields', () => {
+    const file = new File(['%PDF-fake'], 'intake.pdf', { type: 'application/pdf' });
+    const response = {
+      combinedText: 'Claim Number: CLM-1',
+      overallConfidencePercent: 95.35,
+      fields: {
+        claimNumber: 'CLM-1',
+        policyNumber: 'POL-1',
+        dateOfLoss: '2025-08-03',
+        policeReportNumber: 'CPD-1',
+      },
+    };
+
+    service.extractIntakeFields(file).subscribe((result) => {
+      expect(result).toEqual(response);
+    });
+
+    const req = httpMock.expectOne('http://localhost:5080/api/adjudication/runs/extract-intake-fields');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toBeInstanceOf(FormData);
+    expect((req.request.body as FormData).get('file')).toBe(file);
+    req.flush(response);
+  });
+});
