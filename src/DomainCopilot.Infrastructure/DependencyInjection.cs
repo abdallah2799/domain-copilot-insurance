@@ -139,6 +139,11 @@ public static class DependencyInjection
         services.AddScoped<IScannedDocumentRepository, ScannedDocumentRepository>();
         services.AddScoped<OcrIngestionService>();
 
+        // The "upload the claim's own paperwork instead of retyping it" half of starting a run --
+        // reuses the same OCR ports as the pipeline above, deliberately without going through it
+        // (see ClaimIntakeExtractionService's own doc comment for why).
+        services.AddScoped<ClaimIntakeExtractionService>();
+
         // Deterministic payout tools (D2's non-negotiable control): each is registered both by its
         // concrete type (for direct use) and as IToolExecutor (so an orchestrator can resolve
         // the full set and dispatch by ToolDefinition.Name — see ADR-0006).

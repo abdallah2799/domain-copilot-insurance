@@ -1,6 +1,31 @@
 <div class="start-run">
   <h2>Start a new adjudication run</h2>
 
+  <section class="intake-upload">
+    <label>
+      Upload claim intake form (PDF)
+      <input type="file" accept="application/pdf" (change)="onIntakeFileSelected($event)" [disabled]="extracting()" />
+    </label>
+    <p class="hint">
+      Uploading the adjuster's scanned intake form fills in the claim number, policy number and
+      date of loss below from the form itself, so you don't have to retype them. Review the
+      pre-filled values before starting the run -- OCR can misread a field.
+    </p>
+
+    @if (extracting()) {
+      <p class="status">Reading the intake form…</p>
+    }
+    @if (extractionConfidencePercent(); as confidence) {
+      <p class="status">OCR confidence: {{ confidence | number: '1.0-1' }}%</p>
+    }
+    @if (extractedPoliceReportNumber(); as policeReportNumber) {
+      <p class="status">Police report number on file: {{ policeReportNumber }}</p>
+    }
+    @if (extractionError()) {
+      <p class="error">{{ extractionError() }}</p>
+    }
+  </section>
+
   <form [formGroup]="form" (ngSubmit)="submit()">
     <label>
       Claim number

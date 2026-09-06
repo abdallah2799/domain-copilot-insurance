@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   AdjudicationCase,
   ApprovalRequest,
+  ClaimIntakeExtractionResult,
   EditAndApproveRequest,
   PIPELINE_IN_PROGRESS_STATUSES,
   StartAdjudicationRequest,
@@ -37,6 +38,17 @@ export class AdjudicationService {
   // a `blob:` URL instead of the API's own.
   downloadMemo(id: string): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/runs/${id}/memo`, { responseType: 'blob' });
+  }
+
+  // T6's document-in half of starting a run: the adjuster uploads the claim's own intake-form PDF
+  // instead of retyping claim/policy number and date of loss, and the server OCRs it (same ports as
+  // OcrIngestionService, deliberately not going through that pipeline -- see
+  // ClaimIntakeExtractionService's own doc comment for why). Extracted fields come back to pre-fill
+  // the start-run form, never to auto-submit it -- an adjuster can always correct a misread field.
+  extractIntakeFields(file: File): Observable<ClaimIntakeExtractionResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ClaimIntakeExtractionResult>(`${this.baseUrl}/runs/extract-intake-fields`, formData);
   }
 
   // The API now creates the case and returns as soon as it exists (FR-6: "watch it start
