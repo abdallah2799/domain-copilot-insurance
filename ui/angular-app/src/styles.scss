@@ -1,5 +1,38 @@
-/* Global reset + shared table/form/status-badge styling — deliberately minimal (the brief
-   explicitly deprioritizes visual polish); this exists only so the functional UI is legible. */
+/* Global design system: color/spacing tokens plus shared table/form/card/status-badge styling.
+   Deliberately CSS-only (no new dependency, no component template changes) so a visual pass adds
+   no risk to the functional behavior this project's own tests already cover. */
+
+:root {
+  --color-primary: #2952cc;
+  --color-primary-dark: #1e3a99;
+  --color-primary-light: #eaf0ff;
+  --color-ink: #16192b;
+  --color-muted: #5b6478;
+  --color-border: #e3e6ee;
+  --color-bg: #f4f5f9;
+  --color-surface: #ffffff;
+
+  --color-success-bg: #e1f6ea;
+  --color-success-text: #17703c;
+  --color-warning-bg: #fff2d6;
+  --color-warning-text: #8a5a00;
+  --color-danger-bg: #fde6e6;
+  --color-danger-text: #a02525;
+  --color-info-bg: #e6ebff;
+  --color-info-text: #33409e;
+
+  --radius-sm: 0.375rem;
+  --radius: 0.6rem;
+  --shadow-sm: 0 1px 2px rgba(22, 25, 43, 0.06);
+  --shadow: 0 2px 10px rgba(22, 25, 43, 0.08);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+}
 
 * {
   box-sizing: border-box;
@@ -10,41 +43,85 @@ body {
   font-family:
     system-ui,
     -apple-system,
+    "Segoe UI",
+    Roboto,
     sans-serif;
-  color: #1a1a1a;
-  background: #fafafa;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-ink);
+  background: var(--color-bg);
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-size: 1.4rem;
+  margin: 0 0 var(--space-4);
+}
+
+h3 {
+  font-size: 1.05rem;
+  margin: 0 0 var(--space-3);
+  color: var(--color-ink);
+}
+
+a {
+  color: var(--color-primary);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 th,
 td {
   text-align: left;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #ddd;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  background: #fafbfd;
 }
 
 tbody tr {
   cursor: pointer;
+  transition: background-color 0.12s ease;
 }
 
 tbody tr:hover {
-  background: #f0f0f0;
+  background: var(--color-primary-light);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
 }
 
 dl {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: 0.35rem 1rem;
+  gap: 0.4rem 1.25rem;
   margin: 0.5rem 0;
 }
 
 dt {
   font-weight: 600;
-  color: #555;
+  color: var(--color-muted);
+  font-size: 0.9rem;
 }
 
 dd {
@@ -52,76 +129,83 @@ dd {
 }
 
 .error {
-  color: #b00020;
-  font-weight: 600;
+  color: var(--color-danger-text);
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(160, 37, 37, 0.15);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-weight: 500;
 }
 
 .pending {
-  color: #888;
+  color: var(--color-muted);
   font-style: italic;
 }
 
 .status-badge {
   display: inline-block;
-  padding: 0.15rem 0.6rem;
+  padding: 0.2rem 0.7rem;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  background: #e0e0e0;
+  background: var(--color-border);
+  color: var(--color-ink);
 }
 
-.status-AwaitingApproval {
-  background: #fff3cd;
+.status-AwaitingApproval,
+.status-NeedsReview {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
 }
 
 .status-Approved,
-.status-EditedAndApproved {
-  background: #d4edda;
+.status-EditedAndApproved,
+.status-Completed {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
 }
 
 .status-Rejected,
 .status-Failed {
-  background: #f8d7da;
-}
-
-.status-Completed {
-  background: #d4edda;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
 }
 
 .status-Processing,
 .status-Pending {
-  background: #e2e3ff;
-}
-
-.status-NeedsReview {
-  background: #fff3cd;
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
 }
 
 .ocr {
   .hint {
-    color: #555;
+    color: var(--color-muted);
     max-width: 40rem;
   }
 
   section {
-    border: 1px solid #ddd;
-    border-radius: 0.35rem;
-    padding: 0.75rem 1rem;
-    margin-top: 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-4) var(--space-4);
+    margin-top: var(--space-4);
 
     pre {
       white-space: pre-wrap;
-      background: #f7f7f7;
-      padding: 0.5rem;
-      border-radius: 0.25rem;
+      background: var(--color-bg);
+      padding: var(--space-3);
+      border-radius: var(--radius-sm);
     }
   }
 }
 
 form label {
   display: block;
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--space-4);
   font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-ink);
 }
 
 form input,
@@ -130,64 +214,114 @@ form textarea {
   display: block;
   width: 100%;
   max-width: 40rem;
-  margin-top: 0.25rem;
-  padding: 0.4rem;
+  margin-top: var(--space-2);
+  padding: 0.55rem 0.7rem;
   font: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
-.button-link {
-  display: inline-block;
-  padding: 0.4rem 0.9rem;
-  background: #1a56db;
+form input:focus,
+form select:focus,
+form textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.button-link,
+button {
+  padding: 0.5rem 1.05rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
   color: white;
   text-decoration: none;
-  border-radius: 0.25rem;
+  display: inline-block;
+  transition:
+    background-color 0.12s ease,
+    box-shadow 0.12s ease,
+    transform 0.05s ease;
 }
 
-button {
-  padding: 0.4rem 0.9rem;
-  font: inherit;
-  cursor: pointer;
+.button-link:hover,
+button:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.button-link:active,
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Secondary/plain buttons (rejection, cancel-style actions) opt in via .secondary rather than
+   every button defaulting to filled-primary, which would visually shout for low-emphasis actions. */
+button.secondary {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-color: var(--color-border);
+}
+
+button.secondary:hover:not(:disabled) {
+  background: var(--color-bg);
 }
 
 section.stage,
 section.approval-gate,
 section.decision,
-section.failure {
-  border: 1px solid #ddd;
-  border-radius: 0.35rem;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
+section.failure,
+section.totals {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4) var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
 section.failure {
-  background: #fff8f0;
-  border-color: #f0c36d;
+  background: var(--color-warning-bg);
+  border-color: rgba(138, 90, 0, 0.2);
 }
 
 .approval-actions {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-4);
   align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .ask {
   section.refusal,
   section.answer {
-    border: 1px solid #ddd;
-    border-radius: 0.35rem;
-    padding: 0.75rem 1rem;
-    margin: 1rem 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-4);
+    margin: var(--space-4) 0;
   }
 
   section.refusal {
-    background: #fff8f0;
-    border-color: #f0c36d;
+    background: var(--color-warning-bg);
+    border-color: rgba(138, 90, 0, 0.2);
   }
 
   section.answer {
-    background: #eef4ff;
-    border-color: #a8c4f0;
+    background: var(--color-primary-light);
+    border-color: rgba(41, 82, 204, 0.2);
   }
 
   .cursor {
@@ -196,20 +330,20 @@ section.failure {
 
   form .actions {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--space-3);
     align-items: center;
   }
 
   details.chunks {
-    margin-top: 1rem;
+    margin-top: var(--space-4);
 
     .chunk {
-      border-top: 1px solid #eee;
-      padding: 0.5rem 0;
+      border-top: 1px solid var(--color-border);
+      padding: var(--space-3) 0;
 
       p {
         margin: 0.25rem 0 0;
-        color: #444;
+        color: var(--color-muted);
       }
     }
   }
