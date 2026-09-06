@@ -27,17 +27,33 @@ public sealed class AdjudicationDrafterAgent(
         CoverageMatchResult coverageMatch,
         AnomalyFindings anomalyFindings,
         ExclusionAnalysisResult exclusionAnalysis,
+        decimal estimatedDamage,
+        decimal approximateVehicleValue,
         CancellationToken cancellationToken = default)
     {
         var systemPrompt = await prompts.GetAsync("adjudication-drafter", cancellationToken);
+
+        // The claim's own figures are stated here rather than left for the model to find. Without
+        // them this agent had no authoritative repair estimate at all, and filled the gap with the
+        // worked example from its own prompt -- pricing a different claim's $3,200 damage instead
+        // of the $4,200 in front of it, and reporting the result as a tool-calculated figure.
         var userMessage = $"""
+            Claim facts (authoritative — use these figures, do not search for or infer your own):
+              Estimated damage: {estimatedDamage}
+              Approximate vehicle value: {approximateVehicleValue}
+
             Coverage Matcher result: {JsonSerializer.Serialize(coverageMatch, JsonOptions)}
             Anomaly Analyst findings: {JsonSerializer.Serialize(anomalyFindings, JsonOptions)}
             Exclusion Analyst result: {JsonSerializer.Serialize(exclusionAnalysis, JsonOptions)}
             """;
 
         IReadOnlyList<IToolExecutor> tools = [standardPayout, totalLossDetermination, totalLossSettlement, gapCoverage, searchKnowledgeBase];
-        return await runner.RunAsync<Recommendation>("AdjudicationDrafter", systemPrompt, userMessage, tools, MaxIterations, cancellationToken);
+        var result = await runner.RunAsync<Recommendation>("AdjudicationDrafter", systemPrompt, userMessage, tools, MaxIterations, cancellationToken);
+
+        // A payout the model produced itself, rather than obtained from a deterministic tool, is
+        // rejected here rather than persisted -- see PayoutAttributionVerifier for why that
+        // distinction is the difference between having a guardrail and claiming to have one.
+        return PayoutAttributionVerifier.Verify(result);
     }
 
     // camelCase — matches the field names shown in this agent's own prompt examples.

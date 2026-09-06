@@ -23,7 +23,7 @@ public class SemanticKernelCompletionAdapterHistoryTests
             ChatMessage.System("system prompt"),
             ChatMessage.User("do the thing"),
             ChatMessage.Assistant("", [new ToolCall("call-1", "calculate_standard_payout", """{"estimatedDamage":3000}""")]),
-            ChatMessage.ToolResult("call-1", """{"payout":2500}"""),
+            ChatMessage.ToolResult("call-1", "calculate_standard_payout", """{"payout":2500}"""),
         ]);
 
         var history = SemanticKernelCompletionAdapter.BuildHistory(request);
@@ -49,12 +49,17 @@ public class SemanticKernelCompletionAdapterHistoryTests
         Assert.Empty(assistantMessage.Items.OfType<FunctionCallContent>());
     }
 
+    // Regression test. This used to assert only the call id, which is why an empty function name
+    // went unnoticed for so long: a tool result built with no function name reached the provider as
+    // a result the model could not match to its own call, so it never saw the answer and re-requested
+    // the same tool every iteration until it exhausted its budget. That was misdiagnosed in ADR-0009
+    // as a local-model capability limit; it reproduced identically on the hosted model.
     [Fact]
-    public void BuildHistory_ToolResultMessage_CarriesTheMatchingCallId()
+    public void BuildHistory_ToolResultMessage_CarriesTheMatchingCallIdAndFunctionName()
     {
         var request = new CompletionRequest([
             ChatMessage.Assistant("", [new ToolCall("call-1", "lookup_declarations", "{}")]),
-            ChatMessage.ToolResult("call-1", """{"formVersion":"PAP-2024-STD"}"""),
+            ChatMessage.ToolResult("call-1", "lookup_declarations", """{"formVersion":"PAP-2024-STD"}"""),
         ]);
 
         var history = SemanticKernelCompletionAdapter.BuildHistory(request);
@@ -62,6 +67,7 @@ public class SemanticKernelCompletionAdapterHistoryTests
         var toolMessage = history.Single(m => m.Role == AuthorRole.Tool);
         var functionResult = toolMessage.Items.OfType<FunctionResultContent>().Single();
         Assert.Equal("call-1", functionResult.CallId);
+        Assert.Equal("lookup_declarations", functionResult.FunctionName);
     }
 
     [Fact]

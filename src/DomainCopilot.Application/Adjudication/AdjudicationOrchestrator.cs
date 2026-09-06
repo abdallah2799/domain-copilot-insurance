@@ -93,7 +93,9 @@ public sealed class AdjudicationOrchestrator(
 
         var recommendation = await RunStepAsync(
             adjudicationCase, "AdjudicationDrafter", request.Narrative, cancellationToken,
-            ct => adjudicationDrafter.RunAsync(coverageMatch, anomalyFindings, exclusionAnalysis, ct));
+            ct => adjudicationDrafter.RunAsync(
+                coverageMatch, anomalyFindings, exclusionAnalysis,
+                request.EstimatedDamage, request.ApproximateVehicleValue, ct));
         if (recommendation is null)
         {
             return;

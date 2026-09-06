@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 
 namespace DomainCopilot.Application.Providers;
@@ -24,12 +25,7 @@ internal static class ToolArguments
             throw new ToolArgumentException($"Missing required argument '{name}'.");
         }
 
-        if (value.ValueKind != JsonValueKind.Number)
-        {
-            throw new ToolArgumentException($"Argument '{name}' must be a number.");
-        }
-
-        return value.GetDecimal();
+        return ReadDecimal(value, name);
     }
 
     public static decimal? OptionalDecimal(JsonElement root, string name)
@@ -39,12 +35,38 @@ internal static class ToolArguments
             return null;
         }
 
-        if (value.ValueKind != JsonValueKind.Number)
+        return ReadDecimal(value, name);
+    }
+
+    /// <summary>
+    /// Accepts a numeric argument written either as a JSON number (4200) or as a quoted numeric
+    /// string ("4200"). Models routinely emit the quoted form — tool-call arguments travel as a JSON
+    /// string and a model deciding to quote a number inside it is a formatting choice, not a
+    /// different value.
+    ///
+    /// Rejecting the quoted form was a real, run-ending defect rather than a pedantic nicety: the
+    /// Anomaly Analyst passed <c>"4200"</c> to check_damage_value_ratio, got back
+    /// <c>{"error":"Argument 'estimatedDamage' must be a number."}</c>, retried the call in exactly
+    /// the same shape, and looped until it exhausted its iteration budget and failed the whole run.
+    /// That was misdiagnosed twice in ADR-0009 as a model capability limit.
+    ///
+    /// This is coercion, not silent defaulting — the strictness that actually matters (a missing
+    /// argument, a null, or a genuinely non-numeric value) is still an error.
+    /// </summary>
+    private static decimal ReadDecimal(JsonElement value, string name)
+    {
+        if (value.ValueKind == JsonValueKind.Number)
         {
-            throw new ToolArgumentException($"Argument '{name}' must be a number.");
+            return value.GetDecimal();
         }
 
-        return value.GetDecimal();
+        if (value.ValueKind == JsonValueKind.String
+            && decimal.TryParse(value.GetString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed))
+        {
+            return parsed;
+        }
+
+        throw new ToolArgumentException($"Argument '{name}' must be a number.");
     }
 
     public static bool? OptionalBool(JsonElement root, string name)
@@ -84,11 +106,6 @@ internal static class ToolArguments
             return null;
         }
 
-        if (value.ValueKind != JsonValueKind.Number)
-        {
-            throw new ToolArgumentException($"Argument '{name}' must be a number.");
-        }
-
-        return value.GetInt32();
+        return (int)ReadDecimal(value, name);
     }
 }

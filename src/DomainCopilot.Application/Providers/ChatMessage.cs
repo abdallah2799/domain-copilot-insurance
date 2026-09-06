@@ -18,5 +18,10 @@ public sealed record ChatMessage(ChatRole Role, string Content, string? ToolCall
     public static ChatMessage System(string content) => new(ChatRole.System, content);
     public static ChatMessage User(string content) => new(ChatRole.User, content);
     public static ChatMessage Assistant(string content, IReadOnlyList<ToolCall>? toolCalls = null) => new(ChatRole.Assistant, content, ToolCalls: toolCalls);
-    public static ChatMessage ToolResult(string toolCallId, string content) => new(ChatRole.Tool, content, toolCallId);
+    /// <summary><paramref name="functionName"/> is required, not decorative: the Semantic Kernel
+    /// adapter builds a FunctionResultContent from it, and passing an empty name produced a tool
+    /// result the model never actually saw — so an agent would re-request the same tool every
+    /// iteration until it exhausted its budget, which is exactly what the Anomaly Analyst did.</summary>
+    public static ChatMessage ToolResult(string toolCallId, string functionName, string content) =>
+        new(ChatRole.Tool, content, toolCallId, functionName);
 }

@@ -68,3 +68,30 @@ The paragraph above predicted that a hosted model would resolve Anomaly Analyst'
 2. Switching again to `google/gemma-4-31b-it:free` hit OpenRouter's documented free-tier rate limit (429 Too Many Requests) — the `.env` file's own comment states this account is capped at 20 req/min / 50 req/day without a paid credit purchase, and this verification round's repeated full runs exhausted it. The fallback chain caught this too and failed over to Ollama. No conclusion about this model's reasoning quality can be drawn from this attempt either.
 
 **Net status after this round:** full four-agent completion still has not been demonstrated end-to-end against any model. Anomaly Analyst's non-convergence is now a twice-confirmed, prompt-and-tool-result-strengthening-resistant limitation on small/free-tier models specifically (both local 8B-class and hosted free-tier), not a local-model artifact. Testing against a genuinely larger or paid-tier hosted model remains the open, most-informative next step, but requires either resolving the Semantic Kernel connector bug found above or waiting out (or paying past) the free-tier rate limit — neither was available within this round's time budget.
+
+## Resolution (2026-09-06): it was our bug, not the model's
+
+Both diagnoses above were wrong. The Anomaly Analyst's non-convergence was never about the model, which is precisely why it reproduced identically on a local 8B model and on a hosted free-tier one, and why rewriting the prompt, strengthening tool-result guidance, and swapping models changed nothing.
+
+**The actual cause.** `ToolArguments.RequireDecimal` demanded `JsonValueKind.Number` strictly. Tool-call arguments travel as a JSON string, and models routinely write numbers inside it in quoted form — `"4200"` rather than `4200`. Every such call was rejected with `{"error":"Argument 'estimatedDamage' must be a number."}`. The model, given an error that did not say what was wrong with its argument, retried the same call in the same shape, and kept retrying until the iteration breaker fired and failed the run.
+
+**How it was finally found.** The record/replay cassette added in ADR-0014 captures the real conversation, so the loop could be read directly instead of inferred:
+
+```
+--- 4 --- [Tool] {"duplicateClaimsFound":0,"claims":[],"guidance":"...Do not call lookup_claim_history again..."}
+--- 5 --- [Tool] {"error":"Argument 'estimatedDamage' must be a number."}
+--- 6 --- [Tool] {"error":"Argument 'estimatedDamage' must be a number."}
+--- 7 --- [Tool] {"error":"Argument 'estimatedDamage' must be a number."}
+--- 8 --- [Tool] {"error":"Argument 'estimatedDamage' must be a number."}
+```
+
+Entry 4 is the disproof of both earlier diagnoses in one line: `lookup_claim_history` returned successfully with guidance not to call it again, and the model **obeyed** — it never called that tool again. A model that follows one tool's result is a model that reads tool results. It was not failing to track its own conversation; it was being told its argument was invalid and given nothing to correct.
+
+**Two lessons worth keeping.**
+
+1. *We blamed the model twice before reading the conversation once.* Both prior rounds reasoned about the model's capability from the outside — iteration counts and which tool it fixated on — without ever looking at what the tool actually returned. The evidence that settled it in minutes had been produced on every single run; nothing was capturing it. That is the strongest argument for the cassette in ADR-0014 being a debugging tool first and a budget saver second.
+2. *A tool that rejects input must say what would be accepted.* The error named the argument but not the problem, so the model had no signal to change its behaviour. Retrying an identical call was the only rational move available to it.
+
+**Also fixed in this round, and explicitly not the cause:** `ChatMessage.ToolResult` never populated the function name, so tool results reached the provider with an empty one. Real defect, worth fixing, but demonstrably not this one — see the commit for why the cassette rules it out.
+
+**Status:** the strict-number rejection is fixed (numeric strings are coerced; missing, null, and genuinely non-numeric values still error), with regression tests at the tool level. ADR-0014's replay mode makes re-verifying the full pipeline free and repeatable from here.
