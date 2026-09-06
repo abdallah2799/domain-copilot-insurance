@@ -146,7 +146,26 @@ export class RunDetail implements OnInit {
     }
   }
 
-  memoUrl(id: string): string {
-    return this.adjudicationService.memoUrl(id);
+  readonly memoDownloading = signal(false);
+
+  // Fetches the PDF through HttpClient (so the auth interceptor attaches the token -- a plain
+  // <a href> can't) as a Blob, then opens it from a local blob: URL. The object URL is revoked
+  // after a delay rather than immediately, since the new tab needs it to still be valid when it
+  // actually renders the PDF.
+  downloadMemo(id: string): void {
+    this.memoDownloading.set(true);
+    this.actionError.set(null);
+    this.adjudicationService.downloadMemo(id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        this.memoDownloading.set(false);
+      },
+      error: (err) => {
+        this.memoDownloading.set(false);
+        this.actionError.set(`Failed to download memo: ${err.error ?? err.message ?? err}`);
+      },
+    });
   }
 }

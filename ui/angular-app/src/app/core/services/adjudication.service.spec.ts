@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { firstValueFrom, toArray } from 'rxjs';
 import { vi } from 'vitest';
 
@@ -119,5 +119,37 @@ describe('AdjudicationService.streamRun', () => {
     expect(capturedSignal?.aborted).toBe(false);
     subscription.unsubscribe();
     expect(capturedSignal?.aborted).toBe(true);
+  });
+});
+
+describe('AdjudicationService.downloadMemo', () => {
+  let service: AdjudicationService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(AdjudicationService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => httpMock.verify());
+
+  // Regression test: this used to be a plain URL opened in an <a href>, which 401'd once FR-8
+  // made this endpoint require a bearer token -- a browser navigating straight to a URL can't
+  // attach an Authorization header, only HttpClient (via the auth interceptor) can. Fetching it
+  // through HttpClient as a blob is what actually fixes that.
+  it('requests the memo as a blob through HttpClient, not a raw URL', () => {
+    const fakePdf = new Blob(['%PDF-fake'], { type: 'application/pdf' });
+
+    service.downloadMemo('case-1').subscribe((blob) => {
+      expect(blob).toBe(fakePdf);
+    });
+
+    const req = httpMock.expectOne('http://localhost:5080/api/adjudication/runs/case-1/memo');
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(fakePdf);
   });
 });
