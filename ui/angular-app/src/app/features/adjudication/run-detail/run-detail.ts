@@ -43,6 +43,11 @@ export class RunDetail implements OnInit {
   readonly editedRecommendationJson = signal('');
   readonly editComments = signal('');
 
+  // Which action panel is open. Previously these were bare <details> elements, so "reject" and
+  // "edit and approve" could both be expanded at once with no indication of which one the buttons
+  // below belonged to -- on an irreversible decision that ambiguity is worth removing.
+  readonly openAction = signal<'reject' | 'edit' | null>(null);
+
   readonly coverageMatch = computed<CoverageMatchResult | null>(() =>
     this.parse(this.run()?.coverageMatchResultJson),
   );
@@ -57,6 +62,47 @@ export class RunDetail implements OnInit {
   );
 
   readonly isAwaitingApproval = computed(() => this.run()?.status === 'AwaitingApproval');
+
+  // Edit-and-approve means correcting the recommendation, not retyping it: the textarea starts from
+  // the agents' own output, pretty-printed, so an adjuster changes the figure they disagree with.
+  readonly editedJsonError = computed<string | null>(() => {
+    const raw = this.editedRecommendationJson().trim();
+    if (!raw) return null;
+    try {
+      JSON.parse(raw);
+      return null;
+    } catch (err) {
+      return `Not valid JSON: ${(err as Error).message}`;
+    }
+  });
+
+  readonly canSubmitEdit = computed(
+    () =>
+      this.editedRecommendationJson().trim().length > 0 &&
+      this.editComments().trim().length > 0 &&
+      this.editedJsonError() === null,
+  );
+
+  openRejectPanel(): void {
+    this.actionError.set(null);
+    this.openAction.update((current) => (current === 'reject' ? null : 'reject'));
+  }
+
+  openEditPanel(): void {
+    this.actionError.set(null);
+    if (this.openAction() === 'edit') {
+      this.openAction.set(null);
+      return;
+    }
+
+    if (!this.editedRecommendationJson().trim()) {
+      const current = this.recommendation();
+      if (current) {
+        this.editedRecommendationJson.set(JSON.stringify(current, null, 2));
+      }
+    }
+    this.openAction.set('edit');
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;

@@ -37,10 +37,19 @@ public sealed class AdjudicationDrafterAgent(
         // them this agent had no authoritative repair estimate at all, and filled the gap with the
         // worked example from its own prompt -- pricing a different claim's $3,200 damage instead
         // of the $4,200 in front of it, and reporting the result as a tool-calculated figure.
+        // Stated in the tools' own argument names, not just in domain terms. Supplying "estimated
+        // damage" and "approximate vehicle value" alone was not enough: determine_total_loss asks
+        // for repairCost/salvageValue/actualCashValue, the model could not be sure the figures it
+        // had were those, and -- correctly refusing to invent them -- returned RequestMoreInfo on a
+        // claim that had everything needed to price it. Naming the mapping removes the ambiguity
+        // without inviting the model to guess.
         var userMessage = $"""
-            Claim facts (authoritative — use these figures, do not search for or infer your own):
-              Estimated damage: {estimatedDamage}
-              Approximate vehicle value: {approximateVehicleValue}
+            Claim facts (authoritative — use these exact figures; never infer, search for, or
+            substitute your own, and never take a figure from an example):
+              repairCost (the repair estimate for this loss): {estimatedDamage}
+              estimatedDamage (same figure, for calculate_standard_payout): {estimatedDamage}
+              actualCashValue (approximate market value of the vehicle): {approximateVehicleValue}
+              salvageValue: 0 — this vehicle has not been declared a total loss or sold for salvage
 
             Coverage Matcher result: {JsonSerializer.Serialize(coverageMatch, JsonOptions)}
             Anomaly Analyst findings: {JsonSerializer.Serialize(anomalyFindings, JsonOptions)}
