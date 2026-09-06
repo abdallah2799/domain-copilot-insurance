@@ -9,13 +9,43 @@ using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-// Only for running `dotnet run` directly on a host (no Docker Compose env_file injection).
-// Loads into real process env vars before configuration binding runs, so it's indistinguishable
-// from a genuinely exported variable to everything downstream. No-ops (and is gitignored) in
-// CI/containers, which don't have a .env file and inject real environment variables instead.
-if (File.Exists(".env"))
+// Only for running `dotnet run`/the built DLL directly on a host (no Docker Compose env_file
+// injection). Loads into real process env vars before configuration binding runs, so it's
+// indistinguishable from a genuinely exported variable to everything downstream. No-ops (and is
+// gitignored) in CI/containers, which don't have a .env file and inject real environment variables
+// instead.
+//
+// A plain `File.Exists(".env")` looked correct but silently failed depending on how the process was
+// started: `dotnet run --project src/DomainCopilot.Api` (the README's own documented command) sets
+// the working directory to that project's own folder, not the repo root, so ".env" resolved to a
+// path that doesn't exist there -- the app started with no connection string at all and crashed in
+// DemoUserSeeder with "The ConnectionString property has not been initialized," a real failure a
+// reader of the README hit. Searching upward from the assembly's own location for the solution file
+// finds the repo root regardless of the current working directory the process happened to start in.
+var repoRootForEnv = FindRepoRootOrNull(AppContext.BaseDirectory);
+if (repoRootForEnv is not null)
 {
-    DotNetEnv.Env.Load();
+    var envPath = Path.Combine(repoRootForEnv, ".env");
+    if (File.Exists(envPath))
+    {
+        DotNetEnv.Env.Load(envPath);
+    }
+}
+
+static string? FindRepoRootOrNull(string startDirectory)
+{
+    var dir = startDirectory;
+    while (dir is not null)
+    {
+        if (File.Exists(Path.Combine(dir, "DomainCopilot.slnx")))
+        {
+            return dir;
+        }
+
+        dir = Path.GetDirectoryName(dir.TrimEnd(Path.DirectorySeparatorChar));
+    }
+
+    return null;
 }
 
 var builder = WebApplication.CreateBuilder(args);
