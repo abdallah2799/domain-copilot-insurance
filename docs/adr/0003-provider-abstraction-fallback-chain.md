@@ -46,3 +46,37 @@ Harder: token/cost usage extraction (`SemanticKernelCompletionAdapter.ExtractUsa
 **Fix**: `SemanticKernelCompletionAdapter` and both embedding services now take a `Kernel`-building factory/`Lazy<T>` instead of a built `Kernel`, deferring construction (and therefore API-key validation) to first actual use. An unconfigured fallback leg now only fails if a request actually reaches it — which is the correct behavior for a fallback that's expected to sit unused in the common case.
 
 **Why this matters beyond the immediate fix**: this is a general lesson about the fallback-chain pattern this ADR established — DI eagerly resolving both legs of a decorator is a natural, easy-to-miss way to defeat the entire point of "unused fallback shouldn't need to be configured." Applied to all five provider classes for consistency, not just the one that happened to crash first.
+
+## Update (2026-09-06): Groq added as a third completion leg
+
+**What changed.** The completion chain gained Groq, built by nesting the existing two-leg `FallbackCompletionService` rather than generalising it, since it already composes over `ICompletionService` and knows nothing about providers. (Ordering was revised the next day — see the update below.)
+
+**Why.** OpenRouter's free tier allows **50 model requests per day**. A single four-agent adjudication run costs up to ~30 of them (Coverage Matcher 8 iterations, Anomaly Analyst 12, Exclusion Analyst 6, plus the Drafter and any graceful-degrade call). That is roughly two runs a day, and this project hit the wall for real: a day of debugging exhausted the budget mid-afternoon and left the workflow untestable, with the local leg too slow to substitute (`llama3.1` measured at ~10 minutes per completion call, blowing the 20-minute per-stage timeout before finishing stage 1 of 4).
+
+Groq serves open-weight models on its own inference hardware behind an OpenAI-compatible endpoint, with a materially more generous free tier and much lower per-call latency — which matters disproportionately here, because each agent stage is several sequential tool-calling round trips, not one call.
+
+**OpenRouter was kept, not replaced.** It is a genuinely different vendor, so the chain still survives one hosted provider being rate-limited or down. Dropping it would have traded a real resilience property for tidiness.
+
+**What this cost, and why that is the point.** Adding a third provider required one adapter (`GroqCompletionService`), one options class, and three lines of DI wiring. No agent, prompt, orchestrator, tool, or Application/Domain type changed — those layers never learned a new provider exists. This is the brief's provider-swap acceptance test demonstrated under real pressure rather than asserted in a document: the swap happened because a provider limit genuinely blocked the work, and it was a configuration-plus-one-adapter change exactly as this ADR claimed it would be.
+
+**Caveat worth stating.** Groq's model list changes over time and not every model supports tool calling, which every agent here depends on. The model is configuration (`Providers__Groq__Model`), and `.env.example` points at Groq's own model documentation rather than pinning a name this repository would have to chase.
+
+
+## Update (2026-09-07): OpenRouter leads, Groq second
+
+**What changed.** The chain is now OpenRouter → Groq → Ollama.
+
+**Why.** Measuring a real run made the trade concrete. The two hosted legs are limited in opposite ways:
+
+| | Requests/day | Tokens/minute | Effect on one full run |
+|---|---|---|---|
+| OpenRouter (free) | ~50 | no tight cap | finishes at conversational speed |
+| Groq (free) | 1000 | 8,000 | minutes spent waiting for the bucket |
+
+A four-agent run measured **16 calls / 60,315 tokens, of which 88% were prompt tokens** — every tool-calling round trip re-sends the system prompt, the tool schemas, and the whole accumulated conversation. Against Groq's 8,000 tokens/minute that is ~7.5 minutes of waiting versus roughly 16 seconds of actual inference; the observed gap between Drafter calls was a near-constant 26 seconds.
+
+So Groq's generous daily budget is unusable at speed for *this* workload, while OpenRouter's tight daily budget is perfectly usable a few times a day. A run that finishes in seconds and can be done two or three times a day is worth more than one that always works and takes ten minutes — particularly for demonstrating the system to a person. Putting Groq second means exhausting OpenRouter's day degrades the system to *slow*, not to *broken*.
+
+**Only Groq is wrapped in the rate-limit waiter.** Its 429 is a per-minute token bucket that genuinely refills, so waiting is the correct response. OpenRouter's 429 is a daily quota, where waiting 25 seconds accomplishes nothing and merely delays the fail-over — the same status code meaning two different things, which is why `CompletionProviderException.IsRateLimited` exists but the decision of whether waiting helps is made per-leg at composition time rather than inside the exception.
+
+**Cost of the reorder:** moving two arguments in one DI expression. Nothing else in the system knows the order changed.

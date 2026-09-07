@@ -18,6 +18,16 @@ No starter template or boilerplate repository was used. This repository is built
 
 Prerequisites: .NET 10 SDK, Node 20+, Docker, and (for local LLM fallback) [Ollama](https://ollama.com) with `llama3.1` and `nomic-embed-text` pulled (`ollama pull llama3.1 && ollama pull nomic-embed-text`).
 
+**Getting a free API key.** The completion chain is OpenRouter → Groq → Ollama (ADR-0003), and any one of them will run the whole system:
+
+| Provider | Free tier | Speed for one full run | Where |
+|---|---|---|---|
+| **OpenRouter** (primary) | ~50 requests/day | seconds | [openrouter.ai/keys](https://openrouter.ai/keys) |
+| **Groq** (second) | 1000 requests/day, 8k tokens/min | minutes (throttled) | [console.groq.com/keys](https://console.groq.com/keys) — note `console.groq.com`, **not** `x.ai`; keys start `gsk_` |
+| Ollama (local) | unlimited | ~10 min per call | `ollama pull llama3.1` |
+
+One four-agent run costs up to ~30 requests, so OpenRouter's 50/day is roughly two runs — fast, but few. Groq behind it means running out for the day degrades to *slow*, not *broken*. **With no key at all** the chain falls through to Ollama and still works end to end, but expect minutes per call on modest hardware; see the record/replay section below for how to avoid paying that cost twice.
+
 ```bash
 git clone <this-repo> && cd domain-copilot-insurance
 cp .env.example .env   # fill in the values below
