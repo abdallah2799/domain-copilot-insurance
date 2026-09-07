@@ -82,7 +82,7 @@ public sealed class AdjudicationOrchestrator(
 
         var exclusionAnalysis = await RunStepAsync(
             adjudicationCase, "ExclusionAnalyst", request.Narrative, cancellationToken,
-            ct => exclusionAnalyst.RunAsync(coverageMatch, anomalyFindings, ct));
+            ct => exclusionAnalyst.RunAsync(coverageMatch, anomalyFindings, request.LossType, request.Narrative, ct));
         if (exclusionAnalysis is null)
         {
             return;

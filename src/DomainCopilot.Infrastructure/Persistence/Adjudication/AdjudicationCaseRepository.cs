@@ -9,6 +9,9 @@ public sealed class AdjudicationCaseRepository(DomainCopilotDbContext dbContext)
     public Task<AdjudicationCase?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         dbContext.AdjudicationCases.SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
 
+    public Task<AdjudicationCase?> FindByIdForReadAsync(Guid id, CancellationToken cancellationToken = default) =>
+        dbContext.AdjudicationCases.AsNoTracking().SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
+
     public async Task<IReadOnlyList<AdjudicationCase>> ListAllAsync(CancellationToken cancellationToken = default) =>
         await dbContext.AdjudicationCases.OrderByDescending(a => a.CreatedAtUtc).ToListAsync(cancellationToken);
 

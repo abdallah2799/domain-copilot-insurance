@@ -113,5 +113,185 @@
       "ProviderName": "OpenRouter",
       "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
     }
+  },
+  {
+    "Fingerprint": "b71d5187db6170f4a02489b24ec61372c25c2fbbdd3394c441d7e09475afd497",
+    "RequestPreview": "[User] Claim CLM-2025-04417, policy MMIC-PAP-100234, date of loss 2025-08-03. Loss type: Collision.",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-17b3f6ec-b615-4a19-b5b2-8870e0b4eaa9",
+          "Name": "resolve_policy_version",
+          "ArgumentsJson": "{\u0022dateOfLoss\u0022:\u00222025-08-03\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 2495,
+        "CompletionTokens": 183,
+        "TotalTokens": 2678
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "f560e373892fa1727a72086721d6ec8c68ecf13b4523291f6dc8f8a533069bd7",
+    "RequestPreview": "[Tool] {\u0022formVersion\u0022:\u0022PAP-2025-STD\u0022,\u0022effectiveDate\u0022:\u00222025-06-01\u0022}",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-c7f148be-12fe-4248-9517-8e496108bb6d",
+          "Name": "lookup_declarations",
+          "ArgumentsJson": "{\u0022policyNumber\u0022:\u0022MMIC-PAP-100234\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 2578,
+        "CompletionTokens": 61,
+        "TotalTokens": 2639
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "98ebd58c11aa5fc5acbc8bb75d9715c4639a1e4f64e93ee2c48a3b5a11ce48c4",
+    "RequestPreview": "[Tool] {\u0022policyNumber\u0022:\u0022MMIC-PAP-100234\u0022,\u0022namedInsured\u0022:\u0022John A. Whitfield\u0022,\u0022formVersion\u0022:\u0022PAP-2024-STD\u0022,\u0022effectiveDate\u0022:\u00222024-03-01\u0022,\u0022liabilityBiPerPerson\u0022:100000.00,\u2026",
+    "Response": {
+      "Content": "{\n  \u0022formVersion\u0022: \u0022PAP-2025-STD\u0022,\n  \u0022formVersionEffectiveDate\u0022: \u00222025-06-01\u0022,\n  \u0022coveragePart\u0022: \u0022Collision\u0022,\n  \u0022coveragePartSelected\u0022: true,\n  \u0022applicableLimit\u0022: null,\n  \u0022applicableDeductible\u0022: 500,\n  \u0022glassOnlyDeductibleWaiverApplies\u0022: false,\n  \u0022endorsementsHeld\u0022: [\u0022Roadside Assistance Endorsement (END-RA-01)\u0022],\n  \u0022citations\u0022: [\n    \u0022Declarations page, MMIC-PAP-100234, Collision deductible line\u0022,\n    \u0022Declarations page, MMIC-PAP-100234, Endorsements line\u0022\n  ],\n  \u0022notes\u0022: null\n}",
+      "ToolCalls": [],
+      "Usage": {
+        "PromptTokens": 2850,
+        "CompletionTokens": 1716,
+        "TotalTokens": 4566
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "a949bd3964fd89df592f58855c8355f18c8369e09677b985ed8054fbefc29b80",
+    "RequestPreview": "[User] Claim CLM-2025-04417, policy MMIC-PAP-100234, date of loss 2025-08-03. Estimated damage: 4200. Approximate vehicle value: 21000. Narrative: Rear-ended at a stop\u2026",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-7ff76442-bad9-4c21-a56c-6deb3dfa795a",
+          "Name": "check_damage_value_ratio",
+          "ArgumentsJson": "{\u0022approximateVehicleValue\u0022:\u002221000\u0022,\u0022estimatedDamage\u0022:\u00224200\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 2641,
+        "CompletionTokens": 173,
+        "TotalTokens": 2814
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "0a0d0b0209a56cf019f834cc4d89cfeeec9407a84e560fd49dfa5a96adb4d579",
+    "RequestPreview": "[Tool] {\u0022exceedsThreshold\u0022:false,\u0022ratioPercent\u0022:20.0,\u0022thresholdPercent\u0022:60,\u0022guidance\u0022:\u0022This fully answers the damage-to-value indicator for this claim. Do not call che\u2026",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-e6ff0fdd-09fc-45c8-ba1e-414ffcb7494a",
+          "Name": "lookup_claim_history",
+          "ArgumentsJson": "{\u0022policyNumber\u0022:\u0022MMIC-PAP-100234\u0022,\u0022referenceDateOfLoss\u0022:\u00222025-08-03\u0022,\u0022excludeClaimNumber\u0022:\u0022CLM-2025-04417\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 2791,
+        "CompletionTokens": 153,
+        "TotalTokens": 2944
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "5edab17c29e7d66ccaa2529273e808245b60968590109b3f8badb33c4b639b2b",
+    "RequestPreview": "[Tool] {\u0022duplicateClaimsFound\u0022:0,\u0022claims\u0022:[],\u0022guidance\u0022:\u0022This fully answers the duplicate-claims indicator for this claim. Do not call lookup_claim_history again. If y\u2026",
+    "Response": {
+      "Content": "{\n  \u0022damageToValueRatioExceeds60Percent\u0022: false,\n  \u0022duplicateClaimsWithin90Days\u0022: false,\n  \u0022duplicateClaimNumbers\u0022: [],\n  \u0022dateOfLossBeforePolicyEffectiveDate\u0022: false,\n  \u0022narrativePoliceReportMismatch\u0022: false,\n  \u0022gigEconomyUseMentioned\u0022: false,\n  \u0022gigEconomyEndorsementPresent\u0022: false,\n  \u0022summary\u0022: \u0022No anomaly indicators were triggered for this claim. The damage-to-value ratio is 20%, well below the 60% threshold. No duplicate claims were found within the 90-day window. The date of loss (2025-08-03) occurs after the policy effective date (2025-06-01). No police report was filed, so no mismatch is possible. The narrative does not mention gig economy use, and the policy does not include a ride-share endorsement.\u0022,\n  \u0022citations\u0022: [\n    \u0022check_damage_value_ratio result\u0022,\n    \u0022lookup_claim_history result\u0022,\n    \u0022Coverage Matcher result \u2014 effectiveDate\u0022,\n    \u0022Claim narrative \u2014 no gig economy mention\u0022,\n    \u0022Coverage Matcher result \u2014 endorsementsHeld\u0022,\n    \u0022No police report filed\u0022\n  ]\n}",
+      "ToolCalls": [],
+      "Usage": {
+        "PromptTokens": 2966,
+        "CompletionTokens": 1323,
+        "TotalTokens": 4289
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "0c1f67d9e775dd3887bebd7976b13b56fadb5f0d51cff8f942f14762926ef37f",
+    "RequestPreview": "[User] Coverage Matcher result: {\u0022formVersion\u0022:\u0022PAP-2025-STD\u0022,\u0022formVersionEffectiveDate\u0022:\u00222025-06-01\u0022,\u0022coveragePart\u0022:\u0022Collision\u0022,\u0022coveragePartSelected\u0022:true,\u0022applicabl\u2026",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-4b61c7dd-7fbd-409d-8969-26a6eb5b873b",
+          "Name": "search_knowledge_base",
+          "ArgumentsJson": "{\u0022query\u0022:\u0022Standard Exclusions Addendum PAP-2025-STD\u0022,\u0022formVersion\u0022:\u0022PAP-2025-STD\u0022,\u0022topK\u0022:\u00225\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 2497,
+        "CompletionTokens": 1227,
+        "TotalTokens": 3724
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "27a91c0f01e738dc9a2e130e7c77e21098fec9666f0b73c4ae77329e5ce41520",
+    "RequestPreview": "[Tool] {\u0022hasSufficientEvidence\u0022:true,\u0022chunks\u0022:[{\u0022documentTitle\u0022:\u0022Standard Exclusions Addendum \\u2014 PAP-EXCL-2025\u0022,\u0022sectionTitle\u0022:\u0022\u0022,\u0022text\u0022:\u0022Standard Exclusions Adden\u2026",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-bca20c8f-e3b3-4a30-ace3-a9e71ee53228",
+          "Name": "search_knowledge_base",
+          "ArgumentsJson": "{\u0022query\u0022:\u0022business use ride-share exclusion PAP-EXCL-2025\u0022,\u0022topK\u0022:\u00225\u0022,\u0022formVersion\u0022:\u0022PAP-2025-STD\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 3543,
+        "CompletionTokens": 796,
+        "TotalTokens": 4339
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "a6bd99003c86fe1e996b6036032ba511a12e2b3c22086f5a6b3e5cc4337a2939",
+    "RequestPreview": "[Tool] {\u0022hasSufficientEvidence\u0022:true,\u0022chunks\u0022:[{\u0022documentTitle\u0022:\u0022Policy Form Version Comparison \\u2014 PAP-2024-STD vs. PAP-2025-STD\u0022,\u0022sectionTitle\u0022:\u00223. Ride-share/TNC\u2026",
+    "Response": {
+      "Content": "{\n  \u0022exclusionsApply\u0022: false,\n  \u0022applicableExclusions\u0022: [],\n  \u0022insufficientInformation\u0022: true,\n  \u0022reasoning\u0022: \u0022The Anomaly Analyst only checked for gig-economy use (not mentioned) and did not provide details about the cause of loss or other potential exclusionary scenarios (e.g., racing, intentional acts, undisclosed business use). Without a description of the loss circumstances, I cannot confirm or rule out exclusions in the Standard Exclusions Addendum PAP-EXCL-2025. The available facts are insufficient to determine if any exclusion applies.\u0022,\n  \u0022citations\u0022: [\n    \u0022Standard Exclusions Addendum PAP-EXCL-2025\u0022,\n    \u0022Anomaly Analyst findings: no gig-economy use mentioned, no anomaly indicators triggered\u0022\n  ]\n}",
+      "ToolCalls": [],
+      "Usage": {
+        "PromptTokens": 4625,
+        "CompletionTokens": 2419,
+        "TotalTokens": 7044
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "4803abd05c1b4d6b7b9577fbc72fb3363f072415074545df334d30fdeceaa42a",
+    "RequestPreview": "[User] Claim facts (authoritative \u2014 use these exact figures; never infer, search for, or substitute your own, and never take a figure from an example):   repairCost (t\u2026",
+    "Response": {
+      "Content": "{\n  \u0022recommendationType\u0022: \u0022RequestMoreInfo\u0022,\n  \u0022payoutAmount\u0022: null,\n  \u0022payoutToolUsed\u0022: null,\n  \u0022summary\u0022: \u0022The Exclusion Analyst could not confirm the cause of damage from the information available. A description of the loss circumstances (e.g., police report, photos, or statement) is needed before this claim can be adjudicated \u2014 no coverage determination or payout can be made on the current record.\u0022,\n  \u0022citations\u0022: [\n    \u0022Standard Exclusions Addendum PAP-EXCL-2025\u0022,\n    \u0022Anomaly Analyst findings: no gig-economy use mentioned, no anomaly indicators triggered\u0022\n  ]\n}",
+      "ToolCalls": [],
+      "Usage": {
+        "PromptTokens": 3888,
+        "CompletionTokens": 392,
+        "TotalTokens": 4280
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
   }
 ]

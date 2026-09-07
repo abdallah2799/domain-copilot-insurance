@@ -10,6 +10,11 @@ internal sealed class FakeAdjudicationCaseRepository : IAdjudicationCaseReposito
     public Task<AdjudicationCase?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         Task.FromResult(_byId.GetValueOrDefault(id));
 
+    // No change tracker here, so the distinction the real repository draws does not exist -- the
+    // dictionary is always the current state. Kept as a separate member so the port stays honest.
+    public Task<AdjudicationCase?> FindByIdForReadAsync(Guid id, CancellationToken cancellationToken = default) =>
+        Task.FromResult(_byId.GetValueOrDefault(id));
+
     public Task<IReadOnlyList<AdjudicationCase>> ListAllAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<AdjudicationCase>>([.. _byId.Values]);
 
