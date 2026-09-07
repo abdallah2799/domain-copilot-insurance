@@ -43,7 +43,14 @@ export class RetrievalService {
           });
 
           if (!response.ok || !response.body) {
-            subscriber.error(new Error(`Ask stream failed: HTTP ${response.status}`));
+            // The server sends a JSON { message } for a failure it can explain -- most usefully a
+            // Replay-mode cassette miss, which names what was not recorded. Reporting only the
+            // status code turned every one of those into an unactionable "HTTP 500".
+            const detail = await response
+              .json()
+              .then((body: { message?: string }) => body?.message)
+              .catch(() => undefined);
+            subscriber.error(new Error(detail ?? `Ask stream failed: HTTP ${response.status}`));
             return;
           }
 

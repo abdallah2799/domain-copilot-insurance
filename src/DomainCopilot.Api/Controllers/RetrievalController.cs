@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DomainCopilot.Application.Providers;
 using DomainCopilot.Application.Retrieval;
 using DomainCopilot.Domain.Documents;
 using Microsoft.AspNetCore.Mvc;
@@ -118,7 +119,17 @@ public sealed class RetrievalController(HybridRetrievalService retrievalService,
         {
             if (!Response.HasStarted)
             {
-                Response.StatusCode = StatusCodes.Status500InternalServerError;
+                // A bare status code with no body forced the client to report "HTTP 500" for every
+                // cause alike -- including the entirely expected one of asking a question in Replay
+                // mode that the cassette was never recorded against, where the message names the
+                // fingerprint that missed and how to re-record. Losing that left a configuration
+                // condition looking like a server crash.
+                logger.LogError(ex, "Ask stream for question '{Question}' failed before any content was written.", request.Question);
+                Response.StatusCode = ex is CompletionProviderException
+                    ? StatusCodes.Status503ServiceUnavailable
+                    : StatusCodes.Status500InternalServerError;
+                Response.ContentType = "application/json";
+                await Response.WriteAsync(JsonSerializer.Serialize(new { message = ex.Message }, SseJsonOptions), cancellationToken);
                 return;
             }
 
