@@ -95,7 +95,11 @@ Providers__CompletionMode=Replay dotnet run --project src/DomainCopilot.Api
 
 In `Replay` mode no network call is made at all. A request the cassette doesn't contain fails loudly with the fingerprint that missed, rather than silently falling through to the live provider — so a replayed run is genuinely hermetic. Editing a prompt or changing the claim inputs invalidates the cassette by design; re-record it.
 
-Cassettes hold **real captured provider responses**, never hand-written ones. Replay makes a run repeatable, not fictional. No cassette ships in this repository — record your own with step 1 above, which also creates `seed-data/cassettes/`.
+Cassettes hold **real captured provider responses**, never hand-written ones. Replay makes a run repeatable, not fictional.
+
+One ships with the repository: `seed-data/cassettes/adjudication-demo.json`, 43 exchanges from a real run of claim `CLM-2025-04417` ending in an approved $3,700 payout. Start in `Replay` and begin a run with those same inputs (upload `seed-data/corpus/claims/intake_clm_2025_04417.pdf`, narrative *"Rear-ended at a stoplight by another vehicle."*, estimated damage `4200`, vehicle value `21000`) and it replays instantly with no provider calls.
+
+It covers the adjudication pipeline only. An *Ask* question it was not recorded against fails with a message naming what was missing — record your own with step 1 if you want that too. The API states its mode at startup, so you can always see which one you are in.
 
 ## Troubleshooting
 
