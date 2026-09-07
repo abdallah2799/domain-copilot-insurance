@@ -2,7 +2,9 @@ using System.Diagnostics;
 using System.Text;
 using DomainCopilot.Application.Observability;
 using DomainCopilot.Infrastructure;
+using DomainCopilot.Application.Providers;
 using DomainCopilot.Infrastructure.Identity;
+using DomainCopilot.Infrastructure.Providers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
@@ -152,6 +154,36 @@ app.MapControllers();
 // traffic — runs the "ready"-tagged checks (MSSQL, Qdrant) registered in Infrastructure's DI.
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false }).AllowAnonymous();
 app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") }).AllowAnonymous();
+
+// Which completion mode is active decides whether this process spends real provider quota or none
+// at all, and nothing else in the app says which one it got. Starting in Live believing you started
+// in Replay is silent, easy (the variable has to be set on the command that starts *this* process),
+// and expensive -- so it is stated once, unmissably, at startup.
+{
+    var completionMode = CompletionModeConfiguration.Read(app.Configuration);
+    var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
+    if (completionMode == CompletionMode.Replay)
+    {
+        var cassettePath = app.Services.GetRequiredService<CassetteOptions>().Path;
+        var recorded = await app.Services.GetRequiredService<ICompletionCassetteStore>().LoadAsync();
+        startupLogger.LogInformation(
+            "Completion mode: REPLAY — no provider calls will be made. Serving {Count} recorded exchange(s) from {Path}.",
+            recorded.Count, cassettePath);
+
+        if (recorded.Count == 0)
+        {
+            startupLogger.LogWarning(
+                "Replay mode is active but the cassette is empty or missing. Every completion will fail until one is recorded with {Key}=Record.",
+                CompletionModeConfiguration.Key);
+        }
+    }
+    else
+    {
+        startupLogger.LogInformation(
+            "Completion mode: {Mode} — provider calls WILL be made and will consume quota. Set {Key}=Replay on this command to serve a recorded cassette instead.",
+            completionMode.ToString().ToUpperInvariant(), CompletionModeConfiguration.Key);
+    }
+}
 
 app.Run();
 

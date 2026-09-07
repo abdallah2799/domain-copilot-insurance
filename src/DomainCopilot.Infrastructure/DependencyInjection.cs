@@ -127,7 +127,7 @@ public static class DependencyInjection
         // CompletionMode (ADR-0014) then wraps that live chain for the record/replay workflow: one
         // real recorded run replays unlimited times, which is what makes an end-to-end run testable
         // at all against a daily budget a single run can nearly exhaust by itself.
-        var completionMode = configuration.GetValue("Providers:CompletionMode", CompletionMode.Live);
+        var completionMode = CompletionModeConfiguration.Read(configuration);
         services.AddSingleton<ICompletionService>(sp =>
         {
             var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<FallbackCompletionService>>();

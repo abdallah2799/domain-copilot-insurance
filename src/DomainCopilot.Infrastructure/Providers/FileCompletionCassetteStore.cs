@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Configuration;
 using DomainCopilot.Application.Providers;
 
 namespace DomainCopilot.Infrastructure.Providers;
@@ -12,6 +13,14 @@ public enum CompletionMode
     Live,
     Record,
     Replay,
+}
+
+public static class CompletionModeConfiguration
+{
+    public const string Key = "Providers:CompletionMode";
+
+    public static CompletionMode Read(IConfiguration configuration) =>
+        configuration.GetValue(Key, CompletionMode.Live);
 }
 
 public sealed class CassetteOptions
