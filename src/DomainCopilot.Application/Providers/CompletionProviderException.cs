@@ -15,7 +15,8 @@ public sealed class CompletionProviderException(
     string message,
     Exception? innerException = null,
     bool isRateLimited = false,
-    TimeSpan? retryAfter = null)
+    TimeSpan? retryAfter = null,
+    bool isTransient = false)
     : Exception(message, innerException)
 {
     public string ProviderName { get; } = providerName;
@@ -24,4 +25,12 @@ public sealed class CompletionProviderException(
 
     /// <summary>How long the provider asked the caller to wait, when it said so.</summary>
     public TimeSpan? RetryAfter { get; } = retryAfter;
+
+    /// <summary>
+    /// A failure that is a property of this one attempt rather than of the provider — most notably
+    /// a client-library defect parsing an otherwise valid response, where simply asking again
+    /// usually succeeds because the next response has a different shape. Separate from
+    /// <see cref="IsRateLimited"/>, which also clears on its own but needs a much longer wait.
+    /// </summary>
+    public bool IsTransient { get; } = isTransient;
 }

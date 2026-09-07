@@ -122,4 +122,46 @@ public sealed class AdjudicationCaseRepositoryTests : IAsyncLifetime
         Assert.Equal("adjuster.jane", reloaded.ApprovedBy);
         Assert.NotNull(reloaded.ApprovedAtUtc);
     }
+
+    /// <summary>
+    /// Reproduces exactly what the progress stream does: one long-lived scope re-reading a row in a
+    /// loop while a different scope (the background pipeline) advances it.
+    ///
+    /// A tracked read resolves through EF Core's identity map and keeps returning the instance
+    /// loaded the first time, so the stream compared its opening snapshot against itself for the
+    /// whole run and reported no progress -- the page only updated when navigating away built a new
+    /// scope. This pins the distinction so the stream cannot silently go blind again.
+    /// </summary>
+    [Fact]
+    public async Task ARowChangedByAnotherScope_IsInvisibleToATrackedRead_ButSeenByFindByIdForRead()
+    {
+        var repository = new AdjudicationCaseRepository(_dbContext);
+        var adjudicationCase = AdjudicationCase.Create("CLM-STREAM-1", "POL-STREAM-1", new DateOnly(2025, 8, 3), "adjuster");
+        await repository.AddAsync(adjudicationCase);
+        await repository.SaveChangesAsync();
+
+        // The stream's opening read, which puts the entity into this context's identity map.
+        var opening = await repository.FindByIdAsync(adjudicationCase.Id);
+        Assert.Equal(AdjudicationRunStatus.Pending, opening!.Status);
+
+        // A different scope advances the run, exactly as the background pipeline does.
+        var writerOptions = new DbContextOptionsBuilder<DomainCopilotDbContext>()
+            .UseSqlServer(_container.GetConnectionString())
+            .Options;
+        await using (var writerContext = new DomainCopilotDbContext(writerOptions))
+        {
+            var writerRepository = new AdjudicationCaseRepository(writerContext);
+            var fromWriter = await writerRepository.FindByIdAsync(adjudicationCase.Id);
+            fromWriter!.BeginCoverageMatching();
+            await writerRepository.SaveChangesAsync();
+        }
+
+        // The trap: still Pending, because the identity map wins over what the database now says.
+        var trackedReread = await repository.FindByIdAsync(adjudicationCase.Id);
+        Assert.Equal(AdjudicationRunStatus.Pending, trackedReread!.Status);
+
+        // The fix the stream depends on.
+        var untrackedReread = await repository.FindByIdForReadAsync(adjudicationCase.Id);
+        Assert.Equal(AdjudicationRunStatus.MatchingCoverage, untrackedReread!.Status);
+    }
 }

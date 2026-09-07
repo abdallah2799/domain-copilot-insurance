@@ -63,6 +63,56 @@ export class RunDetail implements OnInit {
 
   readonly isAwaitingApproval = computed(() => this.run()?.status === 'AwaitingApproval');
 
+  // Which stage each pipeline status is sitting in, 1-4. FR-6 asks for live agent progress rather
+  // than a frozen spinner, and every stage previously rendered the same flat "Not yet completed"
+  // whether it was actively running or had not started -- so a run in progress was
+  // indistinguishable from a stalled one, which is exactly the question a watching adjuster has.
+  private static readonly STAGE_BY_STATUS: Record<string, number> = {
+    Pending: 0,
+    MatchingCoverage: 1,
+    DetectingAnomalies: 2,
+    AnalyzingExclusions: 3,
+    Drafting: 4,
+  };
+
+  readonly isRunning = computed(() => {
+    const status = this.run()?.status;
+    return status !== undefined && status in RunDetail.STAGE_BY_STATUS;
+  });
+
+  readonly activeStage = computed(() => {
+    const status = this.run()?.status;
+    return status === undefined ? -1 : (RunDetail.STAGE_BY_STATUS[status] ?? -1);
+  });
+
+  // Status "Pending" maps to stage 0 -- the run exists but no agent has started yet, which is a
+  // real state a viewer can land on and needs wording of its own rather than an empty heading.
+  readonly activeStageLabel = computed<string>(() =>
+    STAGE_ORDER[this.activeStage() - 1] ?? 'starting up',
+  );
+
+  /// <summary>'done' | 'active' | 'queued' for a 1-based stage number.</summary>
+  stageState(stage: number): 'done' | 'active' | 'queued' {
+    const active = this.activeStage();
+    if (active === -1) {
+      // Terminal (or awaiting approval): anything that produced output is done, the rest never ran.
+      return this.hasOutput(stage) ? 'done' : 'queued';
+    }
+
+    if (stage < active || this.hasOutput(stage)) return 'done';
+    return stage === active ? 'active' : 'queued';
+  }
+
+  private hasOutput(stage: number): boolean {
+    switch (stage) {
+      case 1: return this.coverageMatch() !== null;
+      case 2: return this.anomalyFindings() !== null;
+      case 3: return this.exclusionAnalysis() !== null;
+      case 4: return this.recommendation() !== null;
+      default: return false;
+    }
+  }
+
   // Edit-and-approve means correcting the recommendation, not retyping it: the textarea starts from
   // the agents' own output, pretty-printed, so an adjuster changes the figure they disagree with.
   readonly editedJsonError = computed<string | null>(() => {

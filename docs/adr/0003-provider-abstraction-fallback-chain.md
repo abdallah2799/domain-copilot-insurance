@@ -80,3 +80,27 @@ So Groq's generous daily budget is unusable at speed for *this* workload, while 
 **Only Groq is wrapped in the rate-limit waiter.** Its 429 is a per-minute token bucket that genuinely refills, so waiting is the correct response. OpenRouter's 429 is a daily quota, where waiting 25 seconds accomplishes nothing and merely delays the fail-over — the same status code meaning two different things, which is why `CompletionProviderException.IsRateLimited` exists but the decision of whether waiting helps is made per-leg at composition time rather than inside the exception.
 
 **Cost of the reorder:** moving two arguments in one DI expression. Nothing else in the system knows the order changed.
+
+## Update (2026-09-07): retrying a leg instead of failing over
+
+Two failures kept costing runs their fast provider, and neither was a provider actually being unavailable.
+
+**A client-library defect parsing a valid response.** Semantic Kernel's OpenAI connector throws while reading response metadata:
+
+```
+System.ArgumentOutOfRangeException (Parameter 'index')
+  at OpenAI.Chat.ChatCompletion.get_Refusal()
+  at ...ClientCore.GetChatCompletionMetadata(ChatCompletion)
+```
+
+The request succeeded and the provider answered; the connector indexes into a content-parts list the response left empty. It is raised before any result reaches our adapter, so nothing here can prevent it — but it depends on that one response's shape, so asking again usually works. First recorded in ADR-0009 against `nemotron-3-ultra-550b`, since seen on `nemotron-3-super-120b`.
+
+**A rate limit, which means opposite things on the two legs.** Groq's 429 is a per-minute token bucket that genuinely refills. OpenRouter's is a daily quota that does not.
+
+Treating all three identically — as "this provider failed, move on" — was wrong in every case. Failing over spends the next leg's scarcer budget, and once that is gone the chain lands on a local model an order of magnitude slower, converting a recoverable pause into a stage timeout.
+
+**Decision.** `CompletionProviderException` now distinguishes `IsRateLimited` from `IsTransient`, and `ProviderRetryCompletionService` (renamed from `RateLimitAwareCompletionService`, which no longer described what it did) retries the same leg with the wait each condition deserves: ~25s for a refilling bucket, ~2s for a parse fault. Whether waiting helps at all is decided per leg at composition time rather than inside the exception — OpenRouter passes `retryRateLimits: false`, because retrying an exhausted daily quota merely spends two more requests from the budget that is already gone.
+
+Semantic Kernel was also bumped 1.80.0 → 1.80.1 in case the parse defect is fixed upstream; the retry stays regardless, since the workaround costs two seconds and the failure mode costs a run.
+
+**The point of the abstraction, again.** All of this lives in `Application` as composition over `ICompletionService`, plus one flag set in the adapter. No agent, prompt, orchestrator, or Domain type knows any of it happened.

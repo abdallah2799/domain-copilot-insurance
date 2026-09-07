@@ -28,6 +28,10 @@
         {{ submitting() ? 'Signing in…' : 'Sign in' }}
       </button>
     </form>
+      @if (sessionExpired) {
+        <p class="notice">Your session expired. Please sign in again to continue.</p>
+      }
+
 
     @if (error()) {
       <p class="error">{{ error() }}</p>

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 import { AskRequest, AskResult, AskStreamEvent } from '../models/retrieval.model';
 
 const API_BASE_URL = 'http://localhost:5080';
@@ -8,6 +9,7 @@ const API_BASE_URL = 'http://localhost:5080';
 @Injectable({ providedIn: 'root' })
 export class RetrievalService {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
 
   // A refused question returns immediately (no LLM call, per AskService); a grounded one makes one
   // real completion call, so this is a fraction of a second to tens of seconds depending on the
@@ -29,13 +31,26 @@ export class RetrievalService {
         try {
           const response = await fetch(`${API_BASE_URL}/api/retrieval/ask/stream`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            // The auth interceptor only sees HttpClient requests, so a raw fetch has to attach
+            // the token itself -- streamRun learned this when FR-8 landed; this one was missed and
+            // every Ask stream 401'd while the non-streaming /ask beside it worked fine.
+            headers: {
+              'Content-Type': 'application/json',
+              ...(this.authService.token ? { Authorization: `Bearer ${this.authService.token}` } : {}),
+            },
             body: JSON.stringify(request),
             signal: controller.signal,
           });
 
           if (!response.ok || !response.body) {
-            subscriber.error(new Error(`Ask stream failed: HTTP ${response.status}`));
+            // The server sends a JSON { message } for a failure it can explain -- most usefully a
+            // Replay-mode cassette miss, which names what was not recorded. Reporting only the
+            // status code turned every one of those into an unactionable "HTTP 500".
+            const detail = await response
+              .json()
+              .then((body: { message?: string }) => body?.message)
+              .catch(() => undefined);
+            subscriber.error(new Error(detail ?? `Ask stream failed: HTTP ${response.status}`));
             return;
           }
 

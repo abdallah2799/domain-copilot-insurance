@@ -37,3 +37,12 @@
     margin-top: var(--space-4);
   }
 }
+
+/* An expired session is not an error the user made -- it reads as information, not a failure. */
+.notice {
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-weight: 500;
+}

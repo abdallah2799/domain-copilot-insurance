@@ -198,7 +198,7 @@ public sealed class AdjudicationController(
     [HttpGet("runs/{id:guid}/stream")]
     public async Task GetRunStream(Guid id, CancellationToken cancellationToken)
     {
-        var initial = await caseRepository.FindByIdAsync(id, cancellationToken);
+        var initial = await caseRepository.FindByIdForReadAsync(id, cancellationToken);
         if (initial is null)
         {
             Response.StatusCode = StatusCodes.Status404NotFound;
@@ -234,7 +234,10 @@ public sealed class AdjudicationController(
             {
                 await Task.Delay(ProgressPollInterval, cancellationToken);
 
-                var current = await caseRepository.FindByIdAsync(id, cancellationToken);
+                // Must not come from the change tracker: this loop and the background pipeline
+                // writing the stage updates run in different scopes, and a tracked read would keep
+                // handing back the snapshot taken at the top of this request.
+                var current = await caseRepository.FindByIdForReadAsync(id, cancellationToken);
                 if (current is null)
                 {
                     return;
