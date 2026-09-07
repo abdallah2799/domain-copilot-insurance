@@ -49,8 +49,23 @@ internal sealed class SemanticKernelCompletionAdapter(string providerName, strin
         }
         catch (Exception ex) when (ex is not CompletionProviderException)
         {
-            throw new CompletionProviderException(providerName, $"Completion request failed: {ex.Message}", ex);
+            throw ToProviderException(ex);
         }
+    }
+
+    /// <summary>Marks a 429 as a rate limit so the chain can wait for it to clear rather than
+    /// failing over. Semantic Kernel wraps the transport error, so the status is read from the
+    /// HttpOperationException it surfaces rather than from a raw HTTP response.</summary>
+    private CompletionProviderException ToProviderException(Exception ex)
+    {
+        var http = ex as Microsoft.SemanticKernel.HttpOperationException
+            ?? ex.InnerException as Microsoft.SemanticKernel.HttpOperationException;
+        var isRateLimited = http?.StatusCode == System.Net.HttpStatusCode.TooManyRequests
+            || ex.Message.Contains("429", StringComparison.Ordinal)
+            || ex.Message.Contains("rate_limit", StringComparison.OrdinalIgnoreCase);
+
+        return new CompletionProviderException(
+            providerName, $"Completion request failed: {ex.Message}", ex, isRateLimited);
     }
 
     public async IAsyncEnumerable<CompletionChunk> StreamCompleteAsync(
@@ -82,7 +97,7 @@ internal sealed class SemanticKernelCompletionAdapter(string providerName, strin
                 }
                 catch (Exception ex)
                 {
-                    throw new CompletionProviderException(providerName, $"Streaming request failed: {ex.Message}", ex);
+                    throw ToProviderException(ex);
                 }
 
                 if (!hasNext)
