@@ -8,7 +8,13 @@ Built for the ITI Technical Instructor technical assessment.
 
 - **Domain: D2 — Insurance claims adjudication**
 - **Twist: T6 — Document in/out** (OCR of scanned documents with confidence handling, plus a generated PDF adjudication memo with citations and tables)
-- Variant as stated in the assignment invitation email (not derived from National ID).
+- **Derivation** — obtained from my National ID using the rule in the assignment brief:
+  - `Domain = (last two digits) mod 7` → last two digits **37**, and 37 mod 7 = **2** → **D2**
+  - `Twist = (sum of all digits) mod 8` → digit sum **46**, and 46 mod 8 = **6** → **T6**
+
+  The identifier itself is deliberately not reproduced here. This repository is public, a National
+  ID is personal data, and the rule only needs the two derived values — which the assessor can
+  check against the identifier they already hold.
 
 ## Starter template declaration
 
