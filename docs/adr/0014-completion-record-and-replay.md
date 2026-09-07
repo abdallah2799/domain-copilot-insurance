@@ -49,4 +49,8 @@ A request with no recorded match is a **hard error**, not a fall-through to the 
 
 **Honesty note.** Cassette contents are real captured provider responses, never hand-written. Any use of replay mode for a recorded demo is disclosed in the README rather than passed off as live inference — replay makes a run *repeatable*, it does not make it *fictional*.
 
-**No cassette ships in this repository yet.** The one recorded while building this predates the fixes in #123/#125, so it encodes a run whose Drafter reported a payout it had not calculated — committing it would ship a recording of known-broken behaviour as if it were reference output. `seed-data/cassettes/` is created on the first `Record` run. A cassette recorded against current `main` can be committed once it exists.
+**A cassette now ships**, at `seed-data/cassettes/adjudication-demo.json` — 43 exchanges from a real recorded run of claim `CLM-2025-04417` against current `main`, ending in an `Approve` at $3,700 with the payout traced to `calculate_standard_payout`.
+
+An earlier recording was deliberately **not** committed: it predated the fixes in #123/#125 and encoded a run whose Drafter reported a payout it had not calculated, which would have shipped known-broken behaviour as reference output. That distinction is the standard for this file — a cassette is committed only when it records behaviour the project is prepared to stand behind, because anyone running `Replay` sees it as the system's output.
+
+Two consequences worth stating. A cassette only answers the exchanges it recorded: this one covers the adjudication pipeline, so `Replay` serves that run and refuses an `Ask` question it never saw. And changing a prompt or the claim inputs invalidates it by design — the fingerprint moves, replay fails loudly, and it must be re-recorded.
