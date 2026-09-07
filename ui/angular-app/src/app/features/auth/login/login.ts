@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -12,6 +12,11 @@ import { AuthService } from '../../../core/services/auth.service';
 export class Login {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  // Set by the auth interceptor when it ends a session whose token the API rejected. Without it,
+  // being bounced to the login screen mid-task looks like the app logging you out at random.
+  readonly sessionExpired = this.route.snapshot.queryParamMap.get('reason') === 'session-expired';
 
   readonly username = signal('');
   readonly password = signal('');

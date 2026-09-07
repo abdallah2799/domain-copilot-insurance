@@ -107,4 +107,31 @@ describe('RetrievalService.askStream', () => {
     subscription.unsubscribe();
     expect(capturedSignal?.aborted).toBe(true);
   });
+
+  // Regression: the auth interceptor only sees HttpClient, so this raw fetch must attach the token
+  // itself. It did not, and every Ask stream 401'd while the /ask endpoint beside it worked.
+  it('sends the bearer token on the streaming request', async () => {
+    localStorage.setItem(
+      'domain-copilot.session',
+      JSON.stringify({ token: 'jwt-token', username: 'analyst', role: 'Analyst' }),
+    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+
+    let captured: RequestInit | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, init: RequestInit) => {
+        captured = init;
+        return Promise.resolve({ ok: true, status: 200, body: { getReader: () => ({ read: async () => ({ done: true, value: undefined }) }) } });
+      }),
+    );
+
+    await new Promise<void>((resolve) =>
+      TestBed.inject(RetrievalService).askStream({ question: 'q' }).subscribe({ complete: () => resolve() }),
+    );
+
+    expect((captured!.headers as Record<string, string>)['Authorization']).toBe('Bearer jwt-token');
+    localStorage.clear();
+  });
 });
