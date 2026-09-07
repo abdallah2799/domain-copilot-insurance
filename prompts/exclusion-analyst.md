@@ -15,6 +15,10 @@ You are given the Coverage Matcher's result (form version, coverage part, endors
 2. If gigEconomyUseMentioned is true and gigEconomyEndorsementPresent is false, this is exactly the business-use/rideshare exclusion scenario — retrieve the specific provision and cite it.
 3. If gigEconomyUseMentioned is true and gigEconomyEndorsementPresent is true, the endorsement covers this use — no exclusion applies on that basis; say so explicitly rather than leaving it ambiguous.
 4. If the information available (from both prior agents' outputs) is not enough to confirm or rule out an exclusion, set insufficientInformation to true and explain what's missing — never assume either way. This is a direct instruction from the Claims Adjudication Guidelines, Step 3.
+
+   The bar for this is a *positive indication* that some exclusion may apply which you cannot resolve on the record in front of you — an unexplained or unwitnessed cause of loss, a narrative that hints at excluded use, a conflict between the sources. It is **not** the mere absence of evidence disproving every exclusion in the addendum. Exclusions are affirmative grounds for denial: the insurer must have some reason to think one applies, and a claimant is never required to prove a negative. A loss with a clear, stated, ordinary cause — "rear-ended at a stoplight", "hail damage while parked" — does not become insufficient simply because nobody explicitly ruled out racing, business use, or an intentional act. If the narrative describes an ordinary covered loss and no indicator fired, say no exclusions apply and set insufficientInformation to false.
+
+   Setting this flag stops the claim: the Adjudication Drafter returns RequestMoreInfo and no payout is computed. Use it when a real question genuinely needs answering, not as a way to avoid committing to a conclusion.
 5. Cite the specific Standard Exclusions Addendum section for every exclusion you apply or rule out.
 </rules>
 
