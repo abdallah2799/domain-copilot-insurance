@@ -117,9 +117,12 @@ public static class DependencyInjection
         // beats one that always works but takes ten minutes. Groq behind it means exhausting the
         // daily budget degrades to slow rather than to broken.
         //
-        // Only the Groq leg is wrapped in the rate-limit waiter: its 429 is a per-minute bucket that
-        // refills, so waiting is right. OpenRouter's is a daily quota, where waiting 25 seconds
-        // achieves nothing and simply delays the fail-over.
+        // Both hosted legs are wrapped in the retry decorator, but for different reasons and with
+        // different patience. Groq's 429 is a per-minute token bucket that genuinely refills, so it
+        // waits. OpenRouter's 429 is a daily quota where waiting achieves nothing -- it is wrapped
+        // only for the transient client-library parse fault (see the adapter), which needs a couple
+        // of seconds, not twenty-five. Losing OpenRouter to that fault is expensive precisely
+        // because it is the only leg that completes a run in under five minutes.
         //
         // CompletionMode (ADR-0014) then wraps that live chain for the record/replay workflow: one
         // real recorded run replays unlimited times, which is what makes an end-to-end run testable
@@ -134,13 +137,24 @@ public static class DependencyInjection
             // an 8000-token minute to refill. Falling through at that point lands on Ollama, where a
             // single call can take ten minutes and blow the orchestrator's per-stage timeout -- so a
             // recoverable pause becomes a failed run. Waiting longer is strictly better than that.
-            var groqWithBackoff = new RateLimitAwareCompletionService(
+            var groqWithBackoff = new ProviderRetryCompletionService(
                 sp.GetRequiredService<GroqCompletionService>(),
-                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<RateLimitAwareCompletionService>>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ProviderRetryCompletionService>>(),
                 maxAttempts: 6);
 
-            var live = new FallbackCompletionService(
+            var retryLogger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ProviderRetryCompletionService>>();
+            var openRouterWithRetry = new ProviderRetryCompletionService(
                 sp.GetRequiredService<OpenRouterCompletionService>(),
+                retryLogger,
+                maxAttempts: 3,
+                transientWait: TimeSpan.FromSeconds(2),
+                // A daily quota does not clear while we wait. Retrying it would spend two more
+                // requests from the budget that is already gone, so this leg fails over at once on
+                // a rate limit and retries only the transient parse fault.
+                retryRateLimits: false);
+
+            var live = new FallbackCompletionService(
+                openRouterWithRetry,
                 new FallbackCompletionService(
                     groqWithBackoff,
                     sp.GetRequiredService<OllamaCompletionService>(),

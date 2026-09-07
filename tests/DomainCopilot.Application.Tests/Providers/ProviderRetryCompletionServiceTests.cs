@@ -9,7 +9,7 @@ namespace DomainCopilot.Application.Tests.Providers;
 /// model slow enough to time the stage out — which is exactly how a run was lost before this
 /// existed.
 /// </summary>
-public class RateLimitAwareCompletionServiceTests
+public class ProviderRetryCompletionServiceTests
 {
     private static readonly TimeSpan NoWait = TimeSpan.FromMilliseconds(1);
 
@@ -48,8 +48,11 @@ public class RateLimitAwareCompletionServiceTests
     private static Func<CompletionResult> Broken() =>
         () => throw new CompletionProviderException("scripted", "500 server error");
 
-    private static RateLimitAwareCompletionService Sut(ScriptedService inner, int maxAttempts = 3) =>
-        new(inner, NullLogger<RateLimitAwareCompletionService>.Instance, maxAttempts, NoWait);
+    private static Func<CompletionResult> TransientParseFault() =>
+        () => throw new CompletionProviderException("scripted", "ArgumentOutOfRangeException (index)", isTransient: true);
+
+    private static ProviderRetryCompletionService Sut(ScriptedService inner, int maxAttempts = 3) =>
+        new(inner, NullLogger<ProviderRetryCompletionService>.Instance, maxAttempts, NoWait);
 
     [Fact]
     public async Task RateLimited_WaitsAndRetriesTheSameProvider()
@@ -110,6 +113,50 @@ public class RateLimitAwareCompletionServiceTests
         }
 
         Assert.Contains("streamed", chunks);
+        Assert.Equal(2, inner.Calls);
+    }
+
+    // The SDK throws while parsing a response the provider returned successfully. Failing over on
+    // that costs the run its only fast provider over a fault a single retry usually clears.
+    [Fact]
+    public async Task TransientClientLibraryFault_IsRetriedOnTheSameProvider()
+    {
+        var inner = new ScriptedService(TransientParseFault(), () => Ok("parsed second time"));
+
+        var result = await Sut(inner).CompleteAsync(new CompletionRequest([ChatMessage.User("q")]));
+
+        Assert.Equal("parsed second time", result.Content);
+        Assert.Equal(2, inner.Calls);
+    }
+
+    // A daily quota does not refill while we wait, so retrying it just spends two more requests
+    // from the budget that is already gone -- OpenRouter's leg opts out for exactly this reason.
+    [Fact]
+    public async Task RateLimit_WhenTheLegOptsOut_FailsOverImmediately()
+    {
+        var inner = new ScriptedService(RateLimited());
+        var sut = new ProviderRetryCompletionService(
+            inner, NullLogger<ProviderRetryCompletionService>.Instance,
+            maxAttempts: 3, rateLimitWait: NoWait, transientWait: NoWait, retryRateLimits: false);
+
+        await Assert.ThrowsAsync<CompletionProviderException>(
+            () => sut.CompleteAsync(new CompletionRequest([ChatMessage.User("q")])));
+
+        Assert.Equal(1, inner.Calls);
+    }
+
+    // ...but that leg must still retry the transient fault, which is the whole reason it is wrapped.
+    [Fact]
+    public async Task TransientFault_IsStillRetriedEvenWhenRateLimitRetriesAreOff()
+    {
+        var inner = new ScriptedService(TransientParseFault(), () => Ok("recovered"));
+        var sut = new ProviderRetryCompletionService(
+            inner, NullLogger<ProviderRetryCompletionService>.Instance,
+            maxAttempts: 3, rateLimitWait: NoWait, transientWait: NoWait, retryRateLimits: false);
+
+        var result = await sut.CompleteAsync(new CompletionRequest([ChatMessage.User("q")]));
+
+        Assert.Equal("recovered", result.Content);
         Assert.Equal(2, inner.Calls);
     }
 }

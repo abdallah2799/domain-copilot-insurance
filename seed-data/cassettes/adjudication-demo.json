@@ -1,0 +1,117 @@
+[
+  {
+    "Fingerprint": "b71d5187db6170f4a02489b24ec61372c25c2fbbdd3394c441d7e09475afd497",
+    "RequestPreview": "[User] Claim CLM-2025-04417, policy MMIC-PAP-100234, date of loss 2025-08-03. Loss type: Collision.",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-01ac3d63-795d-46e8-880c-d1af1e83dac7",
+          "Name": "resolve_policy_version",
+          "ArgumentsJson": "{\u0022dateOfLoss\u0022:\u00222025-08-03\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 2495,
+        "CompletionTokens": 167,
+        "TotalTokens": 2662
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "d6fc04ccc74cc4200f57fdd11b200e85abf28ffceeb396f18dc25864df5983c4",
+    "RequestPreview": "[Tool] {\u0022formVersion\u0022:\u0022PAP-2025-STD\u0022,\u0022effectiveDate\u0022:\u00222025-06-01\u0022}",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-f1520770-0cb8-459d-82a8-f221f4c16ac3",
+          "Name": "lookup_declarations",
+          "ArgumentsJson": "{\u0022policyNumber\u0022:\u0022MMIC-PAP-100234\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 2578,
+        "CompletionTokens": 61,
+        "TotalTokens": 2639
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "778532d10a26834f0cb2e963d1d075d85392fb9494ff58e721311472227488de",
+    "RequestPreview": "[Tool] {\u0022policyNumber\u0022:\u0022MMIC-PAP-100234\u0022,\u0022namedInsured\u0022:\u0022John A. Whitfield\u0022,\u0022formVersion\u0022:\u0022PAP-2024-STD\u0022,\u0022effectiveDate\u0022:\u00222024-03-01\u0022,\u0022liabilityBiPerPerson\u0022:100000.00,\u2026",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-543402f4-395e-422d-9f9e-39ab61b460a5",
+          "Name": "search_knowledge_base",
+          "ArgumentsJson": "{\u0022topK\u0022:\u00221\u0022,\u0022query\u0022:\u0022glass-only deductible waiver comprehensive claims\u0022,\u0022formVersion\u0022:\u0022PAP-2025-STD\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 2850,
+        "CompletionTokens": 1645,
+        "TotalTokens": 4495
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "edf1afa6b7cda9319b5db5955b98aedadc6d1d3785ad7b5e45137dfe3aaaf18d",
+    "RequestPreview": "[Tool] {\u0022hasSufficientEvidence\u0022:true,\u0022chunks\u0022:[{\u0022documentTitle\u0022:\u0022Policy Form Version Comparison \\u2014 PAP-2024-STD vs. PAP-2025-STD\u0022,\u0022sectionTitle\u0022:\u00221. Comprehensive \u2026",
+    "Response": {
+      "Content": "{\n  \u0022formVersion\u0022: \u0022PAP-2025-STD\u0022,\n  \u0022formVersionEffectiveDate\u0022: \u00222025-06-01\u0022,\n  \u0022coveragePart\u0022: \u0022Collision\u0022,\n  \u0022coveragePartSelected\u0022: true,\n  \u0022applicableLimit\u0022: null,\n  \u0022applicableDeductible\u0022: 500,\n  \u0022glassOnlyDeductibleWaiverApplies\u0022: false,\n  \u0022endorsementsHeld\u0022: [\u0022Roadside Assistance Endorsement (END-RA-01)\u0022],\n  \u0022citations\u0022: [\n    \u0022Declarations page, MMIC-PAP-100234, Collision coverage selected line\u0022,\n    \u0022Declarations page, MMIC-PAP-100234, Collision deductible line\u0022\n  ],\n  \u0022notes\u0022: null\n}",
+      "ToolCalls": [],
+      "Usage": {
+        "PromptTokens": 2418,
+        "CompletionTokens": 716,
+        "TotalTokens": 3134
+      },
+      "ProviderName": "Groq",
+      "ModelName": "openai/gpt-oss-120b"
+    }
+  },
+  {
+    "Fingerprint": "a949bd3964fd89df592f58855c8355f18c8369e09677b985ed8054fbefc29b80",
+    "RequestPreview": "[User] Claim CLM-2025-04417, policy MMIC-PAP-100234, date of loss 2025-08-03. Estimated damage: 4200. Approximate vehicle value: 21000. Narrative: Rear-ended at a stop\u2026",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-5c4c30e2-cf9a-4472-b76d-cf134e0c1d10",
+          "Name": "check_damage_value_ratio",
+          "ArgumentsJson": "{\u0022approximateVehicleValue\u0022:\u002221000\u0022,\u0022estimatedDamage\u0022:\u00224200\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 2641,
+        "CompletionTokens": 227,
+        "TotalTokens": 2868
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  },
+  {
+    "Fingerprint": "f3cdbdb767efb6947451006d084d170db65eecca8488923f2e97dfe60541e72e",
+    "RequestPreview": "[Tool] {\u0022exceedsThreshold\u0022:false,\u0022ratioPercent\u0022:20.0,\u0022thresholdPercent\u0022:60,\u0022guidance\u0022:\u0022This fully answers the damage-to-value indicator for this claim. Do not call che\u2026",
+    "Response": {
+      "ToolCalls": [
+        {
+          "Id": "call-02ba4c98-0332-43f4-bc48-77cae0d2552f",
+          "Name": "lookup_claim_history",
+          "ArgumentsJson": "{\u0022policyNumber\u0022:\u0022MMIC-PAP-100234\u0022,\u0022excludeClaimNumber\u0022:\u0022CLM-2025-04417\u0022,\u0022referenceDateOfLoss\u0022:\u00222025-08-03\u0022}"
+        }
+      ],
+      "Usage": {
+        "PromptTokens": 2791,
+        "CompletionTokens": 156,
+        "TotalTokens": 2947
+      },
+      "ProviderName": "OpenRouter",
+      "ModelName": "nvidia/nemotron-3-super-120b-a12b:free"
+    }
+  }
+]

@@ -65,8 +65,28 @@ internal sealed class SemanticKernelCompletionAdapter(string providerName, strin
             || ex.Message.Contains("rate_limit", StringComparison.OrdinalIgnoreCase);
 
         return new CompletionProviderException(
-            providerName, $"Completion request failed: {ex.Message}", ex, isRateLimited);
+            providerName, $"Completion request failed: {ex.Message}", ex, isRateLimited,
+            isTransient: IsClientLibraryParseFault(ex));
     }
+
+    /// <summary>
+    /// Recognises a Semantic Kernel/OpenAI-SDK defect that throws while reading the metadata of a
+    /// response the provider returned successfully:
+    ///
+    ///   System.ArgumentOutOfRangeException (Parameter 'index')
+    ///     at OpenAI.Chat.ChatCompletion.get_Refusal()
+    ///     at ...ClientCore.GetChatCompletionMetadata(ChatCompletion)
+    ///
+    /// The request was fine and the response was fine; the connector indexes into a content-parts
+    /// list that this response left empty. Nothing here can prevent it, because it is raised before
+    /// any result reaches this adapter — but it depends on the shape of that one response, so asking
+    /// again usually works. Treating it as a provider failure instead sent the run to a leg an order
+    /// of magnitude slower over a fault that a single retry clears. Recorded in ADR-0009 against
+    /// nemotron-3-ultra-550b, and since observed on nemotron-3-super-120b.
+    /// </summary>
+    private static bool IsClientLibraryParseFault(Exception ex) =>
+        (ex as ArgumentOutOfRangeException ?? ex.InnerException as ArgumentOutOfRangeException)
+            ?.ParamName == "index";
 
     public async IAsyncEnumerable<CompletionChunk> StreamCompleteAsync(
         CompletionRequest request,
