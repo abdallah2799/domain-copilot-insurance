@@ -85,35 +85,67 @@ public static class DependencyInjection
         var openAiOptions = configuration.GetSection(OpenAiOptions.SectionName).Get<OpenAiOptions>() ?? new OpenAiOptions();
         var ollamaOptions = configuration.GetSection(OllamaOptions.SectionName).Get<OllamaOptions>() ?? new OllamaOptions();
         var openRouterOptions = configuration.GetSection(OpenRouterOptions.SectionName).Get<OpenRouterOptions>() ?? new OpenRouterOptions();
+        var groqOptions = configuration.GetSection(GroqOptions.SectionName).Get<GroqOptions>() ?? new GroqOptions();
         var cassetteOptions = configuration.GetSection(CassetteOptions.SectionName).Get<CassetteOptions>() ?? new CassetteOptions();
 
         services.AddSingleton(openAiOptions);
         services.AddSingleton(ollamaOptions);
         services.AddSingleton(openRouterOptions);
+        services.AddSingleton(groqOptions);
         services.AddSingleton(cassetteOptions);
 
         services.AddSingleton<OpenAiCompletionService>();
         services.AddSingleton<OllamaCompletionService>();
         services.AddSingleton<OpenRouterCompletionService>();
+        services.AddSingleton<GroqCompletionService>();
         services.AddSingleton<OpenAiEmbeddingService>();
         services.AddSingleton<OllamaEmbeddingService>();
         services.AddSingleton<ICompletionCassetteStore, FileCompletionCassetteStore>();
 
-        // Completions: OpenRouter (hosted, primary) -> Ollama (local, fallback). OpenAI's API no
-        // longer has a perpetual free tier; OpenRouter does (see ADR-0003 update), at the cost of a
-        // tight free-tier rate limit (20 req/min, 50 req/day without a credit purchase) — which is
-        // exactly why the Ollama fallback leg matters here, not just as a formality.
+        // Completions: OpenRouter (hosted, primary) -> Groq (hosted, second) -> Ollama (local, last).
+        // Three legs from the same two-leg FallbackCompletionService by nesting it, since it composes
+        // over the port rather than knowing anything about providers.
+        //
+        // The two hosted legs are limited in opposite ways, and the ordering trades one against the
+        // other deliberately. OpenRouter allows only ~50 model requests per day but imposes no tight
+        // per-minute token ceiling, so a full four-agent run completes at conversational speed.
+        // Groq allows 1000 requests a day but only 8000 tokens per minute, and this project's
+        // prompts are large enough (88% of every call is re-sent conversation) that a run spends
+        // minutes waiting for the bucket to refill rather than on inference.
+        //
+        // OpenRouter leads because a run that finishes in seconds and can be done a few times a day
+        // beats one that always works but takes ten minutes. Groq behind it means exhausting the
+        // daily budget degrades to slow rather than to broken.
+        //
+        // Only the Groq leg is wrapped in the rate-limit waiter: its 429 is a per-minute bucket that
+        // refills, so waiting is right. OpenRouter's is a daily quota, where waiting 25 seconds
+        // achieves nothing and simply delays the fail-over.
         //
         // CompletionMode (ADR-0014) then wraps that live chain for the record/replay workflow: one
         // real recorded run replays unlimited times, which is what makes an end-to-end run testable
-        // at all against a 50-request daily budget one run can nearly exhaust by itself.
+        // at all against a daily budget a single run can nearly exhaust by itself.
         var completionMode = configuration.GetValue("Providers:CompletionMode", CompletionMode.Live);
         services.AddSingleton<ICompletionService>(sp =>
         {
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<FallbackCompletionService>>();
+
+            // Six attempts, not the default three: three gives Groq only ~75 seconds of patience,
+            // and when a stage makes several calls in quick succession that is not always enough for
+            // an 8000-token minute to refill. Falling through at that point lands on Ollama, where a
+            // single call can take ten minutes and blow the orchestrator's per-stage timeout -- so a
+            // recoverable pause becomes a failed run. Waiting longer is strictly better than that.
+            var groqWithBackoff = new RateLimitAwareCompletionService(
+                sp.GetRequiredService<GroqCompletionService>(),
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<RateLimitAwareCompletionService>>(),
+                maxAttempts: 6);
+
             var live = new FallbackCompletionService(
                 sp.GetRequiredService<OpenRouterCompletionService>(),
-                sp.GetRequiredService<OllamaCompletionService>(),
-                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<FallbackCompletionService>>());
+                new FallbackCompletionService(
+                    groqWithBackoff,
+                    sp.GetRequiredService<OllamaCompletionService>(),
+                    logger),
+                logger);
 
             return completionMode switch
             {

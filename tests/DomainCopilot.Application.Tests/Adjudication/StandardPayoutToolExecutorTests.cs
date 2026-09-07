@@ -64,4 +64,32 @@ public class StandardPayoutToolExecutorTests
     {
         Assert.Equal("calculate_standard_payout", _executor.Definition.Name);
     }
+
+    // Regression test: the Drafter sent glassOnlyDeductibleWaiverApplies as the quoted string
+    // "false", was told the argument must be a boolean, and re-sent the identical call for five
+    // straight iterations until the breaker fired. The numeric readers had already been relaxed for
+    // quoted values; this one was missed, and a model quoting scalars does not distinguish types.
+    [Theory]
+    [InlineData("\"false\"", 3700)]
+    [InlineData("\"true\"", 4200)]
+    [InlineData("false", 3700)]
+    [InlineData("true", 4200)]
+    public async Task Execute_BooleanSentAsQuotedString_IsAccepted(string waiverJson, decimal expectedPayout)
+    {
+        var result = await _executor.ExecuteAsync(
+            $$"""{"estimatedDamage": 4200, "applicableLimit": 999999, "applicableDeductible": 500, "glassOnlyDeductibleWaiverApplies": {{waiverJson}}}""");
+
+        Assert.True(result.Success, result.ErrorMessage);
+        Assert.Contains(expectedPayout.ToString(System.Globalization.CultureInfo.InvariantCulture), result.ResultJson);
+    }
+
+    [Fact]
+    public async Task Execute_NonBooleanString_StillFails()
+    {
+        var result = await _executor.ExecuteAsync(
+            """{"estimatedDamage": 4200, "applicableLimit": 999999, "applicableDeductible": 500, "glassOnlyDeductibleWaiverApplies": "maybe"}""");
+
+        Assert.False(result.Success);
+        Assert.Contains("glassOnlyDeductibleWaiverApplies", result.ErrorMessage);
+    }
 }
