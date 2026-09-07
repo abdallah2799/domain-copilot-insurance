@@ -76,12 +76,33 @@ internal static class ToolArguments
             return null;
         }
 
-        if (value.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+        return ReadBool(value, name);
+    }
+
+    /// <summary>
+    /// Accepts a boolean written either as a JSON literal (false) or as a quoted string ("false").
+    /// Exactly the same defect as <see cref="ReadDecimal"/> covered for numbers, missed here when
+    /// that one was fixed — and it cost a whole run to find: the Adjudication Drafter passed
+    /// <c>"glassOnlyDeductibleWaiverApplies": "false"</c> to calculate_standard_payout, was told the
+    /// argument must be a boolean, and re-sent the identical call for five straight iterations.
+    ///
+    /// The lesson is that the strictness has to be relaxed consistently across every reader, not
+    /// per-type as each one is caught in production: a model quotes scalars as a formatting habit,
+    /// and it does not distinguish between the types it is quoting.
+    /// </summary>
+    private static bool ReadBool(JsonElement value, string name)
+    {
+        if (value.ValueKind is JsonValueKind.True or JsonValueKind.False)
         {
-            throw new ToolArgumentException($"Argument '{name}' must be a boolean.");
+            return value.GetBoolean();
         }
 
-        return value.GetBoolean();
+        if (value.ValueKind == JsonValueKind.String && bool.TryParse(value.GetString(), out var parsed))
+        {
+            return parsed;
+        }
+
+        throw new ToolArgumentException($"Argument '{name}' must be a boolean (true or false).");
     }
 
     public static string RequireString(JsonElement root, string name)
