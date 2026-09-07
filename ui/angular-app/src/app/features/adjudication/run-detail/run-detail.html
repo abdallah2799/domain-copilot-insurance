@@ -14,6 +14,28 @@
       </button>
     </header>
 
+    @if (isRunning()) {
+      <section class="live-progress" role="status" aria-live="polite">
+        <div class="live-progress__headline">
+          <span class="spinner" aria-hidden="true"></span>
+          <strong>Running — {{ activeStageLabel() }}</strong>
+          <span class="live-progress__count">stage {{ activeStage() }} of {{ stageOrder.length }}</span>
+        </div>
+        <ol class="live-progress__steps">
+          @for (stage of stageOrder; track stage; let i = $index) {
+            <li [class]="'step step--' + stageState(i + 1)">
+              <span class="step__marker" aria-hidden="true"></span>
+              <span class="step__label">{{ stage }}</span>
+            </li>
+          }
+        </ol>
+        <p class="hint">
+          Updates stream live as each agent finishes. A pause of 20–30 seconds is normal while a
+          provider rate limit clears — the run has not stalled.
+        </p>
+      </section>
+    }
+
     <dl class="summary">
       <dt>Policy</dt>
       <dd>{{ r.policyNumber }}</dd>
@@ -32,8 +54,19 @@
       </section>
     }
 
-    <section class="stage">
-      <h3>1. Coverage Matcher</h3>
+    <section class="stage" [class]="'stage stage--' + stageState(1)">
+      <h3>
+        1. Coverage Matcher
+        <span class="stage__state">
+          @if (stageState(1) === 'active') {
+            <span class="spinner spinner--sm" aria-hidden="true"></span> working…
+          } @else if (stageState(1) === 'done') {
+            done
+          } @else {
+            queued
+          }
+        </span>
+      </h3>
       @if (coverageMatch(); as cm) {
         <dl>
           <dt>Form version</dt>
@@ -59,13 +92,26 @@
             </ul>
           </dd>
         </dl>
+      } @else if (stageState(1) === 'active') {
+        <p class="pending pending--active">This agent is running now — results appear here as soon as it finishes.</p>
       } @else {
-        <p class="pending">Not yet completed.</p>
+        <p class="pending">Not started yet.</p>
       }
     </section>
 
-    <section class="stage">
-      <h3>2. Anomaly Analyst</h3>
+    <section class="stage" [class]="'stage stage--' + stageState(2)">
+      <h3>
+        2. Anomaly Analyst
+        <span class="stage__state">
+          @if (stageState(2) === 'active') {
+            <span class="spinner spinner--sm" aria-hidden="true"></span> working…
+          } @else if (stageState(2) === 'done') {
+            done
+          } @else {
+            queued
+          }
+        </span>
+      </h3>
       @if (anomalyFindings(); as af) {
         <dl>
           <dt>Damage/value &gt; 60%</dt>
@@ -94,13 +140,26 @@
             </ul>
           </dd>
         </dl>
+      } @else if (stageState(2) === 'active') {
+        <p class="pending pending--active">This agent is running now — results appear here as soon as it finishes.</p>
       } @else {
-        <p class="pending">Not yet completed.</p>
+        <p class="pending">Not started yet.</p>
       }
     </section>
 
-    <section class="stage">
-      <h3>3. Exclusion Analyst</h3>
+    <section class="stage" [class]="'stage stage--' + stageState(3)">
+      <h3>
+        3. Exclusion Analyst
+        <span class="stage__state">
+          @if (stageState(3) === 'active') {
+            <span class="spinner spinner--sm" aria-hidden="true"></span> working…
+          } @else if (stageState(3) === 'done') {
+            done
+          } @else {
+            queued
+          }
+        </span>
+      </h3>
       @if (exclusionAnalysis(); as ex) {
         <dl>
           <dt>Exclusions apply</dt>
@@ -120,13 +179,26 @@
             </ul>
           </dd>
         </dl>
+      } @else if (stageState(3) === 'active') {
+        <p class="pending pending--active">This agent is running now — results appear here as soon as it finishes.</p>
       } @else {
-        <p class="pending">Not yet completed.</p>
+        <p class="pending">Not started yet.</p>
       }
     </section>
 
-    <section class="stage">
-      <h3>4. Adjudication Drafter</h3>
+    <section class="stage" [class]="'stage stage--' + stageState(4)">
+      <h3>
+        4. Adjudication Drafter
+        <span class="stage__state">
+          @if (stageState(4) === 'active') {
+            <span class="spinner spinner--sm" aria-hidden="true"></span> working…
+          } @else if (stageState(4) === 'done') {
+            done
+          } @else {
+            queued
+          }
+        </span>
+      </h3>
       @if (recommendation(); as rec) {
         <dl>
           <dt>Recommendation</dt>
@@ -149,8 +221,10 @@
             </ul>
           </dd>
         </dl>
+      } @else if (stageState(4) === 'active') {
+        <p class="pending pending--active">This agent is running now — results appear here as soon as it finishes.</p>
       } @else {
-        <p class="pending">Not yet completed.</p>
+        <p class="pending">Not started yet.</p>
       }
     </section>
 
