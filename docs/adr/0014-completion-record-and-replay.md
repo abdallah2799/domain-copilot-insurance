@@ -49,7 +49,9 @@ A request with no recorded match is a **hard error**, not a fall-through to the 
 
 **Honesty note.** Cassette contents are real captured provider responses, never hand-written. Any use of replay mode for a recorded demo is disclosed in the README rather than passed off as live inference — replay makes a run *repeatable*, it does not make it *fictional*.
 
-**A cassette now ships**, at `seed-data/cassettes/adjudication-demo.json` — 43 exchanges from a real recorded run of claim `CLM-2025-04417` against current `main`, ending in an `Approve` at $3,700 with the payout traced to `calculate_standard_payout`.
+**A cassette now ships**, at `seed-data/cassettes/adjudication-demo.json` — 31 exchanges from a real recorded run of claim `CLM-2025-04417` against current `main`, ending in an `Approve` at $3,700 with the payout traced to `calculate_standard_payout`.
+
+**Recording appends, so a cassette holds whatever runs were recorded into it — including abandoned ones.** The file originally carried four: two early runs that died before finishing, one complete run, and a final truncated one that stopped after the Exclusion Analyst. Because a repeated fingerprint resolves to the *last* entry — the rule that lets a single exchange be re-recorded by appending — that truncated run shadowed the complete one, and replay walked its chain into a dead end at the Drafter. The abandoned runs were deleted; nothing was added. A cassette is a recording, so the only honest repair is removing entries, never writing one.
 
 An earlier recording was deliberately **not** committed: it predated the fixes in #123/#125 and encoded a run whose Drafter reported a payout it had not calculated, which would have shipped known-broken behaviour as reference output. That distinction is the standard for this file — a cassette is committed only when it records behaviour the project is prepared to stand behind, because anyone running `Replay` sees it as the system's output.
 
